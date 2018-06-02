@@ -8,6 +8,17 @@
                              FocusManager.FocusedElement="{Binding ElementName=Cars}"
              d:DesignHeight="450" d:DesignWidth="650"
              FontSize="16">
+    <UserControl.Resources>
+        <Style TargetType="TextBox">
+            <Style.Triggers>
+                <Trigger Property="Validation.HasError" Value="true">
+                    <Setter Property="ToolTip"
+                        Value="{Binding RelativeSource={x:Static RelativeSource.Self},
+                        Path=(Validation.Errors)[0].ErrorContent}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
 
     <Grid Grid.IsSharedSizeScope="True">
         <Grid.ColumnDefinitions>
@@ -37,7 +48,7 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <ListBox x:Name="SortedCars" Grid.Column="0" Grid.Row="0"
-                 MinWidth="200" MinHeight="300" Margin="5"
+                 Width="250" ScrollViewer.HorizontalScrollBarVisibility="Hidden" Height="300" Margin="5"
                  SelectedItem="{Binding Path=SelectedCar, Mode=TwoWay}"
                  DisplayMemberPath="ToString"/>
             <StackPanel Orientation="Vertical" Grid.Column="1" Grid.Row="0">
@@ -81,11 +92,11 @@
                     <TextBlock Grid.Column="1" Grid.Row="2" Text="Model:" VerticalAlignment="Center" HorizontalAlignment="Right"/>
                     <TextBlock Grid.Column="1" Grid.Row="3" Text="Year:" VerticalAlignment="Center" HorizontalAlignment="Right"/>
                     <TextBlock Grid.Column="1" Grid.Row="4" Text="Owner:" VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                    <TextBox x:Name="FieldedCar_Make" Grid.Column="2" Grid.Row="1" Margin="5" MinWidth="100"/>
-                    <TextBox x:Name="FieldedCar_Model" Grid.Column="2" Grid.Row="2" Margin="5"  MinWidth="100"/>
-                    <TextBox x:Name="FieldedCar_Year" Grid.Column="2" Grid.Row="3" Margin="5" MinWidth="100"/>
-                    <TextBox x:Name="FieldedCar_Owner" Grid.Column="2" Grid.Row="4" Margin="5" MinWidth="100"/>
-                </Grid>
+                    <TextBox x:Name="FieldedCar_Make" Grid.Column="2" Grid.Row="1" Margin="5" Width="150" MaxLength="50"/>
+                    <TextBox x:Name="FieldedCar_Model" Grid.Column="2" Grid.Row="2" Margin="5"  Width="150"  MaxLength="50"/>
+                    <TextBox x:Name="FieldedCar_Year" Grid.Column="2" Grid.Row="3" Margin="5" Width="150" MaxLength="4"/>
+                    <TextBox x:Name="FieldedCar_Owner" Grid.Column="2" Grid.Row="4" Margin="5" Width="150"  MaxLength="50"/>
+                 </Grid>
                 <StackPanel Orientation="Vertical" Grid.Column="1" Grid.Row="0">
                     <Label Content="Changes" HorizontalAlignment="Center"/>
                     <Button x:Name="Save" Content="Save" Margin="5"/>

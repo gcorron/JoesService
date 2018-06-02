@@ -11,16 +11,18 @@ using System.Threading.Tasks;
 
 namespace WpfApp5.Models
 {
-    public class CarModel : Caliburn.Micro.PropertyChangedBase
+    public class CarModel : Caliburn.Micro.PropertyChangedBase, IComparable<CarModel>, IDataErrorInfo, IEditableObject
     {
 
-        //Private variables
+        #region Private variables
         private string _make;
         private string _model;
         private int _year;
         private string _owner;
+        private CarModel _editCopy;
+        #endregion
 
-        //Properties
+        #region Properties
         public int CarID { get; set; }
 
         public string Make
@@ -69,18 +71,75 @@ namespace WpfApp5.Models
 
         public new string ToString
         {
+  
+
             get
             {
-                return $"{Year} {Make} {Model}";
+                if (_editCopy is null)
+                    return $"{Year} {Make} {Model}";
+                else
+                    return $"{_editCopy.Year} {_editCopy.Make} {_editCopy.Model}";
             }
         }
 
- 
-        public CarModel ShallowCopy()
+        #endregion
+
+        #region Implements IComparable
+        public int CompareTo(CarModel rightCar)
         {
-           return (CarModel) this.MemberwiseClone();
+            CarModel leftCar = this;
+            return leftCar.ToString.CompareTo(rightCar.ToString);
+        }
+        #endregion
+        #region Implements IDataErrorInfo
+        public string Error => throw new NotImplementedException();
+
+        public string this[string columnName] {
+            get
+            {
+                switch (columnName) {
+                    case "Make":return FiftyNoBlanks(Make);
+                    case "Model":return FiftyNoBlanks(Model);
+                    case "Owner":return FiftyNoBlanks(Owner);
+                    case "Year":
+                        if (Year < 1900 || Year > 2050)
+                            return "Year out of range.";
+                        break;
+                }
+                return null;
+            }
+        }
+        private string FiftyNoBlanks(string Test)
+        {
+            if (String.IsNullOrWhiteSpace(Test))
+                return "Field must not be blank.";
+            else if (Test.Length > 50)
+                return "Field is too long.";
+            else
+                return null;
         }
 
-    }
 
+        #endregion
+        #region Implements IEditableObject
+        public void BeginEdit()
+        {
+            //make a copy of the original in case cancels
+            ObjectCopier.CopyFields(_editCopy = new CarModel(), this);
+        }
+
+        public void EndEdit()
+        {
+            _editCopy = null;
+        }
+
+        public void CancelEdit()
+        {
+            ObjectCopier.CopyFields(this, _editCopy);
+            _editCopy = null;
+        }
+
+        #endregion
+
+    }
 }

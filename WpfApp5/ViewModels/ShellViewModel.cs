@@ -76,7 +76,7 @@ namespace WpfApp5.ViewModels
                 NotifyOfPropertyChange("CarsScreen");
                 if (_servicesScreen == null)
                 {
-                    _servicesScreen = new ServicesViewModel(_carsScreen.SelectedCar);
+                    _servicesScreen = new ServicesViewModel(_carsScreen.FieldedCar);
                     _servicesScreen.ScreenStateChanged += OnScreenStateChanged;
                 }
                 this.ActivateItem((IScreen)_servicesScreen);

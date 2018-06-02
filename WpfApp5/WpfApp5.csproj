@@ -74,6 +74,7 @@
     <Compile Include="Models\CarModel.cs" />
     <Compile Include="Models\ServiceModel.cs" />
     <Compile Include="Models\SingleServiceModel.cs" />
+    <Compile Include="ObjectCopier.cs" />
     <Compile Include="ViewModels\CarsViewModel.cs" />
     <Compile Include="ViewModels\ServicesViewModel.cs" />
     <Compile Include="ViewModels\ShellViewModel.cs" />

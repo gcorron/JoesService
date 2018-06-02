@@ -15,59 +15,52 @@ namespace WpfApp5.ViewModels
 {
     class CarsViewModel: Screen
     {
-        //Private variables
-        private BindingList<CarModel> _cars;
+        #region Private variables
+        private List<CarModel> _carList;
         private BindingListCollectionView _sortedCars;
  
-        private CarModel _selectedCar;
         private CarModel _fieldedCar;
         private bool _screenEditingMode;
+        #endregion
 
-        //Events
+        #region Events
         public event EventHandler<CarModel> SelectedCarChanged;
         public EventHandler<bool> ScreenStateChanged;
+        #endregion
 
-
-        //Constructor
+        #region Constructor
         public CarsViewModel()
         {
-            _cars=new BindingList<CarModel>(DataAccess.GetCars()); // load up cars from DB
-            _sortedCars = new BindingListCollectionView(_cars);
-            ///To do: figure out how to specify the sorting key
+            BindingList<CarModel> _cars;
 
+            _carList = DataAccess.GetCars();
+            _carList.Sort(); 
+            _cars =new BindingList<CarModel>(_carList); // load up cars from DB
+            _cars.RaiseListChangedEvents = true;
+            _cars.ListChanged += _cars_ListChanged;
+            _sortedCars =  new BindingListCollectionView(_cars);
+            _sortedCars.CurrentChanged += _sortedCars_CurrentChanged;
+            _sortedCars.MoveCurrentToFirst();
         }
+        #endregion
 
-        //Properties
+        #region Properties
 
-        public BindingListCollectionView SortedCars {
+        public BindingListCollectionView SortedCars
+        {
             get { return _sortedCars; }
         }
 
- 
-        public CarModel SelectedCar
-        {
-            get
-            {
-                return _selectedCar;
-            }
-            set
-            {
-                _selectedCar = value;
-                FieldedCar = value;
-                NotifyOfPropertyChange(() => SelectedCar);
-                SelectedCarChanged?.Invoke(this,SelectedCar);
-            }
-        }
- 
         public CarModel FieldedCar
         {
             get { return _fieldedCar; }
-            set {
+            set
+            {
                 _fieldedCar = value;
                 NotifyOfPropertyChange(() => FieldedCar);
+                SelectedCarChanged?.Invoke(this, FieldedCar);
             }
         }
-
 
         public bool CanSave(string Fieldedcar_Make, string Fieldedcar_Model, string Fieldedcar_Owner, int Fieldedcar_Year)
         {
@@ -95,55 +88,66 @@ namespace WpfApp5.ViewModels
             get { return !_screenEditingMode; }
         }
 
-        //Methods        
+        #endregion
+        #region Methods
 
         public void SelectFirstCar()
         {
-            SelectedCar = _cars[0];
+            _sortedCars.MoveCurrentToFirst();
         }
      
         public void Edit()
         {
-            FieldedCar = _selectedCar.ShallowCopy();
+            _sortedCars.EditItem(_sortedCars.CurrentItem);
             ScreenEditingMode = true;
         }
 
         public void Add()
         {
-            FieldedCar = new CarModel();
+            FieldedCar = _sortedCars.AddNew() as CarModel;
             ScreenEditingMode = true;
         }
 
         public void Save(string Fieldedcar_Make, string Fieldedcar_Model, string Fieldedcar_Owner, int Fieldedcar_Year)
         {
-            int i;
+
             bool isnew = _fieldedCar.CarID == 0;
 
             DataAccess.UpdateCar(_fieldedCar);
             if (isnew)
-                _cars.Add(_fieldedCar);
-            else
             { 
-                i = _cars.IndexOf(_selectedCar);
-                _cars[i] = _fieldedCar;
+                _sortedCars.CommitNew();
+                _sortedCars.MoveCurrentTo(_fieldedCar);
             }
-            SelectedCar = _fieldedCar;
+            else
+            {
+                _sortedCars.CommitEdit();
+            }
             _sortedCars.Refresh();
             ScreenEditingMode = false;
         }
 
         public void Cancel()
         {
-            FieldedCar = _selectedCar;
+            if (_sortedCars.IsAddingNew)
+                _sortedCars.CancelNew();
+            else if (_sortedCars.IsEditingItem)
+                _sortedCars.CancelEdit();
             ScreenEditingMode = false;
         }
 
-        public void NewCar()
+        #endregion
+        #region Event Handlers
+        private void _cars_ListChanged(object sender, ListChangedEventArgs e)
         {
-            CarModel car = new CarModel();
-            _cars.Add(car);
-            SelectedCar = car;
+            _carList.Sort();
+            //_sortedCars.Refresh();
         }
-
+        private void _sortedCars_CurrentChanged(object sender, EventArgs e)
+        {
+            FieldedCar = _sortedCars.CurrentItem as CarModel;
+            SelectedCarChanged?.Invoke(this, FieldedCar);
+        }
+        #endregion
     }
 }
