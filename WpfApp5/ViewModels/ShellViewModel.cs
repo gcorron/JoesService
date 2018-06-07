@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using WpfApp5.Models;
 
 
@@ -12,8 +13,8 @@ namespace WpfApp5.ViewModels
 {
     class ShellViewModel : Conductor<IScreen>.Collection.OneActive
     {
-        private CarModel _selectedCar;
-        private CarsViewModel _carsScreen;
+        private ICarModel _selectedCar;
+        private ICarsViewModel _carsScreen;
         private ServicesViewModel _servicesScreen;
         private char _screentype;
         private bool _canChangeScreen;
@@ -23,6 +24,7 @@ namespace WpfApp5.ViewModels
         {
             CarsScreen = true;
             CanChangeScreen = true;
+            NotifyOfPropertyChange(() => ErrorMessageVisible);
         }
 
         //Event Handlers
@@ -38,7 +40,7 @@ namespace WpfApp5.ViewModels
 
         //Properties
 
-            
+
 
         public bool CarsScreen
         {
@@ -54,9 +56,8 @@ namespace WpfApp5.ViewModels
 
                 if (_carsScreen == null)
                 {
-                    _carsScreen = new CarsViewModel();
+                    _carsScreen = new CarsViewModel(ShowErrorMessage);
                     _carsScreen.SelectedCarChanged += OnSelectedCarChanged;
-                    _carsScreen.SelectFirstCar();
                     _carsScreen.ScreenStateChanged += OnScreenStateChanged;
                 }
                 this.ActivateItem((IScreen)_carsScreen);
@@ -71,19 +72,23 @@ namespace WpfApp5.ViewModels
             }
             set
             {
+                if (_servicesScreen == null)
+                {
+                    _servicesScreen = new ServicesViewModel(ShowErrorMessage);
+                    _servicesScreen.ScreenStateChanged += OnScreenStateChanged;
+                }
+                if (!_servicesScreen.LoadServiceData(_carsScreen.FieldedCar))
+                    return; //error loading from DB, don't show services screen
+
+                this.ActivateItem((IScreen)_servicesScreen);
                 _screentype = 'S';
                 NotifyOfPropertyChange("ServicesScreen");
                 NotifyOfPropertyChange("CarsScreen");
-                if (_servicesScreen == null)
-                {
-                    _servicesScreen = new ServicesViewModel(_carsScreen.FieldedCar);
-                    _servicesScreen.ScreenStateChanged += OnScreenStateChanged;
-                }
-                this.ActivateItem((IScreen)_servicesScreen);
+
             }
         }
 
-        public CarModel SelectedCar
+        public ICarModel SelectedCar
         {
             get
             {
@@ -96,32 +101,38 @@ namespace WpfApp5.ViewModels
             }
 
         }
-   
+
         public bool CanChangeScreen
         {
             get { return _canChangeScreen; }
-            set {
+            set
+            {
                 _canChangeScreen = value;
-                NotifyOfPropertyChange(()=>CanChangeScreen);
+                NotifyOfPropertyChange(() => CanChangeScreen);
             }
         }
- 
-        public bool CanSaveCar(string selectedcar_make,string selectedcar_model, int selectedcar_year, string selectedcar_owner)
+
+        public string ErrorMessage { get; set; }
+        public Visibility ErrorMessageVisible
         {
-                if (String.IsNullOrWhiteSpace(selectedcar_make)) return false;
-                if (String.IsNullOrWhiteSpace(selectedcar_model)) return false;
-                if (String.IsNullOrWhiteSpace(selectedcar_owner)) return false;
-                if (selectedcar_year < 1900 || selectedcar_year > 2050) return false;
-                return true;
+            get {
+                if (string.IsNullOrEmpty(ErrorMessage))
+                    return Visibility.Hidden;
+                else
+                    return Visibility.Visible;
+            }       
         }
 
-        //Methods
-
-        public void SaveCar(string selectedcar_make, string selectedcar_model, int selectedcar_year, string selectedcar_owner)
-
+        private void ShowErrorMessage(string message)
         {
-            DataAccess.UpdateCar(_selectedCar);
-        }       
+            ErrorMessage = message;
+            NotifyOfPropertyChange(() => ErrorMessage);
+            NotifyOfPropertyChange(() => ErrorMessageVisible);
+        }
+        public void ClearError()
+        {
+            ShowErrorMessage("");
+        }
     }
 
 }

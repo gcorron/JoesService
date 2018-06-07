@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,16 +10,17 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace WpfApp5.Views
+namespace WpfApp1
 {
     /// <summary>
-    /// Interaction logic for ShellView.xaml
+    /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class OldShellView : Window
+    public partial class MainWindow : Window
     {
-        public OldShellView()
+        public MainWindow()
         {
             InitializeComponent();
         }

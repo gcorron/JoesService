@@ -5,9 +5,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:WpfApp5.Views"
              mc:Ignorable="d" Background="Aqua"
-                             FocusManager.FocusedElement="{Binding ElementName=Cars}"
-             d:DesignHeight="450" d:DesignWidth="650"
-             FontSize="16">
+                FocusManager.FocusedElement="{Binding ElementName=Cars}"
+             FontSize="16" Width="Auto" Height="Auto" 
+             d:DesignHeight="400" d:DesignWidth="800">
     <UserControl.Resources>
         <Style TargetType="TextBox">
             <Style.Triggers>
@@ -19,58 +19,60 @@
             </Style.Triggers>
         </Style>
     </UserControl.Resources>
-
     <Grid Grid.IsSharedSizeScope="True">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="20"/>
-            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="350"/>
             <ColumnDefinition Width="20"/>
-            <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="20"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="20"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="20"/>
         </Grid.RowDefinitions>
-        
+        <!-- Left Side -->
         <Border x:Name="BorderL" Grid.Row="1" Grid.Column="1" BorderBrush="Black" BorderThickness="2"/>
-        <Grid Grid.Row="1" Grid.Column="1"
+        <Grid Grid.Row="1" Grid.Column="1" Width= "Auto" Height="Auto"
               IsEnabled="{Binding NotScreenEditingMode}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto" SharedSizeGroup="ButtonPanel"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            <ListBox x:Name="SortedCars" Grid.Column="0" Grid.Row="0"
-                 Width="250" ScrollViewer.HorizontalScrollBarVisibility="Hidden" Height="300" Margin="5"
-                 SelectedItem="{Binding Path=SelectedCar, Mode=TwoWay}"
-                 DisplayMemberPath="ToString"/>
+
+            <ListView  x:Name="SortedCars" SelectedItem="{Binding Path=FieldedCar, Mode=TwoWay}" FontSize="12" Margin="5">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Date" Width="50" DisplayMemberBinding="{Binding Year}"/>
+                        <GridViewColumn Header="Make" Width="95" DisplayMemberBinding="{Binding Make}"/>
+                        <GridViewColumn Width="95" Header="Model" DisplayMemberBinding="{Binding Model}"/>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+            
             <StackPanel Orientation="Vertical" Grid.Column="1" Grid.Row="0">
                 <Label Content="Car" HorizontalAlignment="Center"/>
                 <Button x:Name="Edit" Content="Edit" Margin="5"/>
                 <Button x:Name="Add" Content="Add" Margin="5"/>
+                <Button x:Name="Delete" Content="Delete" Margin="5"/>
             </StackPanel>
         </Grid>
         <!-- Right Side -->
         <Border Grid.Column="3" Grid.Row="1" BorderBrush="Black" BorderThickness="2">
             <Grid IsEnabled="{Binding ScreenEditingMode}" Grid.Column="3" Grid.Row="1">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto" SharedSizeGroup="ButtonPanel"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <Grid>
+                <Grid Grid.Row="0" Grid.Column="0">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
@@ -92,17 +94,20 @@
                     <TextBlock Grid.Column="1" Grid.Row="2" Text="Model:" VerticalAlignment="Center" HorizontalAlignment="Right"/>
                     <TextBlock Grid.Column="1" Grid.Row="3" Text="Year:" VerticalAlignment="Center" HorizontalAlignment="Right"/>
                     <TextBlock Grid.Column="1" Grid.Row="4" Text="Owner:" VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                    <TextBox x:Name="FieldedCar_Make" Grid.Column="2" Grid.Row="1" Margin="5" Width="150" MaxLength="50"/>
-                    <TextBox x:Name="FieldedCar_Model" Grid.Column="2" Grid.Row="2" Margin="5"  Width="150"  MaxLength="50"/>
-                    <TextBox x:Name="FieldedCar_Year" Grid.Column="2" Grid.Row="3" Margin="5" Width="150" MaxLength="4"/>
-                    <TextBox x:Name="FieldedCar_Owner" Grid.Column="2" Grid.Row="4" Margin="5" Width="150"  MaxLength="50"/>
-                 </Grid>
+                    <TextBox x:Name="FieldedCar_Make" Grid.Column="2" Grid.Row="1" Margin="5" MinWidth="150" MaxLength="50"/>
+                    <TextBox x:Name="FieldedCar_Model" Grid.Column="2" Grid.Row="2" Margin="5"  MinWidth="150"  MaxLength="50"/>
+                    <TextBox x:Name="FieldedCar_Year" Grid.Column="2" Grid.Row="3" Margin="5" MinWidth="150" MaxLength="4"/>
+                    <TextBox x:Name="FieldedCar_Owner" Grid.Column="2" Grid.Row="4" Margin="5" MinWidth="150"  MaxLength="50"/>
+                    <!-- hidden fields for button enabling -->
+                    <TextBox x:Name="FieldedCar_CarID" Grid.Column="1" Grid.Row="5" Visibility="Hidden"/>
+                    <RadioButton x:Name="FieldedCar_HasService" Grid.Column="1" Grid.Row="6" Visibility="Hidden"/>
+                </Grid>
                 <StackPanel Orientation="Vertical" Grid.Column="1" Grid.Row="0">
                     <Label Content="Changes" HorizontalAlignment="Center"/>
                     <Button x:Name="Save" Content="Save" Margin="5"/>
                     <Button x:Name="Cancel" Content="Cancel" Margin="5"/>
                 </StackPanel>
-                </Grid>
+            </Grid>
         </Border>
     </Grid>
 </UserControl>

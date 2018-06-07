@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace WpfApp5.Models
 {
-    public class CarModel : Caliburn.Micro.PropertyChangedBase, IComparable<CarModel>, IDataErrorInfo, IEditableObject
+    public class CarModel : Caliburn.Micro.PropertyChangedBase, IComparable<CarModel>, IDataErrorInfo, IEditableObject, ICarModel
     {
 
         #region Private variables
@@ -69,6 +69,8 @@ namespace WpfApp5.Models
             }
         }
 
+        public bool HasService { get; set; }
+
         public new string ToString
         {
   
@@ -82,6 +84,7 @@ namespace WpfApp5.Models
             }
         }
 
+
         #endregion
 
         #region Implements IComparable
@@ -90,10 +93,16 @@ namespace WpfApp5.Models
             CarModel leftCar = this;
             return leftCar.ToString.CompareTo(rightCar.ToString);
         }
+
         #endregion
         #region Implements IDataErrorInfo
-        public string Error => throw new NotImplementedException();
-
+        private string _error;
+        public string Error
+        {
+            get { return _error; }
+            set { _error = value; }
+        }
+ 
         public string this[string columnName] {
             get
             {

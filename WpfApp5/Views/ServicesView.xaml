@@ -6,107 +6,137 @@
              xmlns:local="clr-namespace:WpfApp5.Views"
              mc:Ignorable="d" Background="BurlyWood" FontSize="16"
              d:DesignHeight="450" d:DesignWidth="800">
+
+    <UserControl.Resources>
+        <Style TargetType="TextBox">
+            <Style.Triggers>
+                <Trigger Property="Validation.HasError" Value="true">
+                    <Setter Property="ToolTip"
+                        Value="{Binding RelativeSource={x:Static RelativeSource.Self},
+                        Path=(Validation.Errors)[0].ErrorContent}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style TargetType="DatePicker">
+            <Style.Triggers>
+                <Trigger Property="Validation.HasError" Value="true">
+                    <Setter Property="ToolTip"
+                        Value="{Binding RelativeSource={x:Static RelativeSource.Self},
+                        Path=(Validation.Errors)[0].ErrorContent}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+ 
+    </UserControl.Resources>
+    
     <Grid> <!-- for the entire control -->
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="20"/>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="20"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="20"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="20"/>
         </Grid.RowDefinitions>
+
         <Grid Grid.Column="1" Grid.Row="1">
             <!-- dividing in two with a spacer in the middle -->
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="20"/>
-                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
+
             <!-- left side of control -->
             <Border x:Name="BorderL" Grid.Row="0" Grid.Column="0" BorderBrush="Black" BorderThickness="2"/>
             <Grid Grid.Row="0" Grid.Column="0" IsEnabled="{Binding NotScreenEditingMode}">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto" SharedSizeGroup="ButtonPanel"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <ListBox x:Name="Services" Grid.Column="0" Grid.Row="0"
-                     MinWidth="200" MinHeight="300" Margin="5"
-                     SelectedItem="{Binding Path=SelectedService, Mode=TwoWay}"
-                     DisplayMemberPath="ToString"/>
-                <StackPanel Orientation="Vertical" Grid.Column="1" Grid.Row="0" Width="60" Margin="5">
-                    <Label Content="Services" HorizontalAlignment="Center"/>
+
+
+                <ListView  x:Name="SortedServices" SelectedItem="{Binding Path=FieldedService, Mode=TwoWay}" FontSize="12" Margin="5">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Date" Width="75"
+                                            DisplayMemberBinding="{Binding ServiceDate, StringFormat={}{0:d}}"/>
+                            <GridViewColumn Header="Charge" Width="90">
+                                <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Width="75" Text="{Binding TotalCost, StringFormat={}{0:C2}}" TextAlignment="Right"/>
+                                </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Width="75" Header="Tech Name" DisplayMemberBinding="{Binding TechName}">
+                            </GridViewColumn>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+                
+                <StackPanel Orientation="Vertical" Grid.Column="1" Grid.Row="1" Width="60" Margin="5">
                     <Button x:Name="Edit" Content="Edit" Margin="5"/>
                     <Button x:Name="Add" Content="Add" Margin="5"/>
+                    <Button x:Name="Delete" Content="Delete" Margin="5" IsEnabled="{Binding CanDelete}"/>
                 </StackPanel>
             </Grid>
 
             <!-- right side of control -->
             <Border x:Name="BorderE" Grid.Row="0" Grid.Column="2" BorderBrush="Black" BorderThickness="2">
-                <Grid Grid.Row="0" Grid.Column="2" IsEnabled="{Binding ScreenEditingMode}">
-                    <Grid.RowDefinitions>
-                        <RowDefinition/>
-                    </Grid.RowDefinitions>
+            <Grid Grid.Row="0" Grid.Column="2" IsEnabled="{Binding ScreenEditingMode}">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="ButtonPanel"/>
+                </Grid.ColumnDefinitions>
+                <!-- Text Entries-->
+                <Grid Grid.Row="0" Grid.Column="0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto" SharedSizeGroup="ButtonPanel"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <!-- Text Entries-->
-                    <Grid Grid.Row="0" Grid.Column="0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
-                        <TextBlock Grid.Column="0" Grid.Row="0" Text="   "/>
-                        <TextBlock Grid.Column="1" Grid.Row="1" Text="Service Date:"  VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                        <TextBlock Grid.Column="1" Grid.Row="2" Text="Tech:"  VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                        <TextBlock Grid.Column="1" Grid.Row="3" Text="Labor Cost:"  VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                        <TextBlock Grid.Column="1" Grid.Row="4" Text="Parts Cost:"  VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                        <TextBox x:Name="SelectedService_ServiceDate" Grid.Column="2" Grid.Row="1" Margin="5" MinWidth="100"/>
-                        <TextBox x:Name="SelectedService_TechName" Grid.Column="2" Grid.Row="2" Margin="5"  MinWidth="100"/>
-                        <TextBox x:Name="SelectedService_LaborCost" Grid.Column="2" Grid.Row="3" Margin="5" MinWidth="100"/>
-                        <TextBox x:Name="SelectedService_PartsCost" Grid.Column="2" Grid.Row="4" Margin="5" MinWidth="100"/>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Column="0" Grid.Row="0" Text="   "/>
+                    <TextBlock Grid.Column="1" Grid.Row="1" Text="Service Date:" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                    <TextBlock Grid.Column="1" Grid.Row="2" Text="Tech:" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                    <TextBlock Grid.Column="1" Grid.Row="3" Text="Labor Cost:" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                    <TextBlock Grid.Column="1" Grid.Row="4" Text="Parts Cost:" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                        <DatePicker x:Name="FieldedService_ServiceDate" Grid.Column="2" Grid.Row="1" Margin="5" MinWidth="100"/>
+                    <TextBox x:Name="FieldedService_TechName" Grid.Column="2" Grid.Row="2" Margin="5"  MinWidth="100"/>
+                    <TextBox x:Name="FieldedService_LaborCostString"  Grid.Column="2" Grid.Row="3" Margin="5" MinWidth="100"
+                             TextAlignment="Right" IsReadOnly="True"/>
+                    <TextBox x:Name="FieldedService_PartsCostString" Grid.Column="2" Grid.Row="4" Margin="5" MinWidth="100"
+                             TextAlignment="Right" IsReadOnly="True"/>
+
                     </Grid>
-                    <!-- Buttons -->
-                    <StackPanel Orientation="Vertical" Grid.Column="1" Grid.Row="0" Margin="5">
-                        <Label Content="Changes" HorizontalAlignment="Center"/>
-                        <Button x:Name="Save" Content="Save" Margin="5"/>
-                        <Button x:Name="Cancel" Content="Cancel" Margin="5"/>
-                    </StackPanel>
-                </Grid>
+                <!-- Buttons -->
+                <StackPanel Orientation="Vertical" Grid.Column="1" Grid.Row="0" Margin="5">
+                    <Button x:Name="Save" Content="Save" Margin="5"/>
+                    <Button x:Name="Cancel" Content="Cancel" Margin="5"/>
+                </StackPanel>
+            </Grid>
             </Border>
         </Grid>
     </Grid>

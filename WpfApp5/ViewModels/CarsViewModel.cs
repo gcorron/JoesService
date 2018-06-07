@@ -10,37 +10,37 @@ using System.Collections;
 using System.Globalization;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Windows;
+using static WpfApp5.DataAccess;
 
 namespace WpfApp5.ViewModels
 {
-    class CarsViewModel: Screen
+    class CarsViewModel : Screen, ICarsViewModel
     {
-        #region Private variables
+        #region Private Variables, Events, Constructor
         private List<CarModel> _carList;
         private BindingListCollectionView _sortedCars;
- 
         private CarModel _fieldedCar;
         private bool _screenEditingMode;
-        #endregion
 
-        #region Events
+        private HandleError _handleError;
         public event EventHandler<CarModel> SelectedCarChanged;
-        public EventHandler<bool> ScreenStateChanged;
-        #endregion
+        public event EventHandler<bool> ScreenStateChanged;
 
-        #region Constructor
-        public CarsViewModel()
+        public CarsViewModel(HandleError handleError)
         {
+            _handleError = handleError;
             BindingList<CarModel> _cars;
+            _carList = DataAccess.GetCars(handleError);
+            if (_carList is null)
+                return;
 
-            _carList = DataAccess.GetCars();
             _carList.Sort(); 
             _cars =new BindingList<CarModel>(_carList); // load up cars from DB
             _cars.RaiseListChangedEvents = true;
             _cars.ListChanged += _cars_ListChanged;
             _sortedCars =  new BindingListCollectionView(_cars);
             _sortedCars.CurrentChanged += _sortedCars_CurrentChanged;
-            _sortedCars.MoveCurrentToFirst();
         }
         #endregion
 
@@ -91,16 +91,43 @@ namespace WpfApp5.ViewModels
         #endregion
         #region Methods
 
-        public void SelectFirstCar()
-        {
-            _sortedCars.MoveCurrentToFirst();
-        }
-     
         public void Edit()
         {
             _sortedCars.EditItem(_sortedCars.CurrentItem);
             ScreenEditingMode = true;
         }
+
+        public void Delete(bool FieldedCar_HasService)
+        {
+            if (MessageBox.Show("Do you want to Delete this car?", "Confirm",
+                MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            {
+                _fieldedCar.CarID = -_fieldedCar.CarID;
+                try
+                {
+                    DataAccess.UpdateCar(_fieldedCar,_handleError);
+                }
+                catch (Exception e)
+                {
+                    MessageBox.Show(
+                        "Database Error: {e.Message}");
+                    return;                
+                }
+                if (_fieldedCar.CarID == 0)
+                {
+                    _sortedCars.Remove(_fieldedCar);
+                    _sortedCars.Refresh();
+                }
+            }
+
+        }
+
+        public bool CanDelete(bool FieldedCar_HasService)
+        {
+            return FieldedCar_HasService == false;
+        }
+
+
 
         public void Add()
         {
@@ -113,7 +140,7 @@ namespace WpfApp5.ViewModels
 
             bool isnew = _fieldedCar.CarID == 0;
 
-            DataAccess.UpdateCar(_fieldedCar);
+            DataAccess.UpdateCar(_fieldedCar,_handleError);
             if (isnew)
             { 
                 _sortedCars.CommitNew();
@@ -123,6 +150,7 @@ namespace WpfApp5.ViewModels
             {
                 _sortedCars.CommitEdit();
             }
+            _carList.Sort();
             _sortedCars.Refresh();
             ScreenEditingMode = false;
         }
@@ -136,8 +164,9 @@ namespace WpfApp5.ViewModels
             ScreenEditingMode = false;
         }
 
+
         #endregion
-        #region Event Handlers
+        #region Event Handlers/Callbacks
         private void _cars_ListChanged(object sender, ListChangedEventArgs e)
         {
             _carList.Sort();

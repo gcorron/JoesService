@@ -24,5 +24,10 @@ namespace WpfApp5.Views
         {
             InitializeComponent();
         }
+
+        private void Setter_Unselected(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }
