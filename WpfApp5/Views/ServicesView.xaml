@@ -3,9 +3,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:WpfApp5.Views"
-             mc:Ignorable="d" Background="BurlyWood" FontSize="16"
-             d:DesignHeight="450" d:DesignWidth="800">
+             xmlns:local="clr-namespace:WpfApp5"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             mc:Ignorable="d" Background="Bisque" FontSize="16" 
+             d:DesignHeight="400" d:DesignWidth="800"
+             Width="Auto" Height="Auto">
 
     <UserControl.Resources>
         <Style TargetType="TextBox">
@@ -17,6 +19,21 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+        <Style x:Key="EditCellStyleError" TargetType="{x:Type TextBox}">
+            <Style.Triggers>
+                <Trigger Property="Validation.HasError" Value="true">
+                    <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors)[0].ErrorContent}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="CellStyleError" TargetType="{x:Type TextBlock}">
+            <Style.Triggers>
+                <Trigger Property="Validation.HasError" Value="true">
+                    <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors)[0].ErrorContent}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        
         <Style TargetType="DatePicker">
             <Style.Triggers>
                 <Trigger Property="Validation.HasError" Value="true">
@@ -26,11 +43,14 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
- 
+
+        <CollectionViewSource x:Key="LineTypes" Source="{Binding Path=LineTypesCollection}" />
     </UserControl.Resources>
-    
-    <Grid> <!-- for the entire control -->
+
+    <Grid  Grid.IsSharedSizeScope="True"> <!-- for the entire control -->
         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="20"/>
+            <ColumnDefinition Width="350"/>
             <ColumnDefinition Width="20"/>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="20"/>
@@ -41,22 +61,11 @@
             <RowDefinition Height="20"/>
         </Grid.RowDefinitions>
 
-        <Grid Grid.Column="1" Grid.Row="1">
-            <!-- dividing in two with a spacer in the middle -->
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="20"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-
-            <!-- left side of control -->
-            <Border x:Name="BorderL" Grid.Row="0" Grid.Column="0" BorderBrush="Black" BorderThickness="2"/>
-            <Grid Grid.Row="0" Grid.Column="0" IsEnabled="{Binding NotScreenEditingMode}">
+              <!-- left side of control -->
+            <Border x:Name="BorderL" Grid.Row="1" Grid.Column="1" BorderBrush="Black" BorderThickness="2"/>
+            <Grid Grid.Row="1" Grid.Column="1" IsEnabled="{Binding NotScreenEditingMode}">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto" SharedSizeGroup="ButtonPanel"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
@@ -64,7 +73,9 @@
                 </Grid.RowDefinitions>
 
 
-                <ListView  x:Name="SortedServices" SelectedItem="{Binding Path=FieldedService, Mode=TwoWay}" FontSize="12" Margin="5">
+                <ListView  x:Name="SortedServices"
+                           SelectedItem="{Binding Path=FieldedService, Mode=TwoWay}"
+                           FontSize="12" Margin="5">
                     <ListView.View>
                         <GridView>
                             <GridViewColumn Header="Date" Width="75"
@@ -82,7 +93,7 @@
                     </ListView.View>
                 </ListView>
                 
-                <StackPanel Orientation="Vertical" Grid.Column="1" Grid.Row="1" Width="60" Margin="5">
+                <StackPanel Orientation="Vertical" Grid.Column="1" Grid.Row="1" Margin="5">
                     <Button x:Name="Edit" Content="Edit" Margin="5"/>
                     <Button x:Name="Add" Content="Add" Margin="5"/>
                     <Button x:Name="Delete" Content="Delete" Margin="5" IsEnabled="{Binding CanDelete}"/>
@@ -90,8 +101,8 @@
             </Grid>
 
             <!-- right side of control -->
-            <Border x:Name="BorderE" Grid.Row="0" Grid.Column="2" BorderBrush="Black" BorderThickness="2">
-            <Grid Grid.Row="0" Grid.Column="2" IsEnabled="{Binding ScreenEditingMode}">
+            <Border x:Name="BorderE" Grid.Row="1" Grid.Column="3" BorderBrush="Black" BorderThickness="2">
+            <Grid Grid.Row="0" Grid.Column="2" IsEnabled="{Binding ScreenEditingMode}" Margin="5,0,0,0">
                 <Grid.RowDefinitions>
                     <RowDefinition/>
                 </Grid.RowDefinitions>
@@ -105,7 +116,6 @@
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -113,31 +123,75 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Column="0" Grid.Row="0" Text="   "/>
                     <TextBlock Grid.Column="1" Grid.Row="1" Text="Service Date:" VerticalAlignment="Center" HorizontalAlignment="Right"/>
                     <TextBlock Grid.Column="1" Grid.Row="2" Text="Tech:" VerticalAlignment="Center" HorizontalAlignment="Right"/>
                     <TextBlock Grid.Column="1" Grid.Row="3" Text="Labor Cost:" VerticalAlignment="Center" HorizontalAlignment="Right"/>
                     <TextBlock Grid.Column="1" Grid.Row="4" Text="Parts Cost:" VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                        <DatePicker x:Name="FieldedService_ServiceDate" Grid.Column="2" Grid.Row="1" Margin="5" MinWidth="100"/>
-                    <TextBox x:Name="FieldedService_TechName" Grid.Column="2" Grid.Row="2" Margin="5"  MinWidth="100"/>
-                    <TextBox x:Name="FieldedService_LaborCostString"  Grid.Column="2" Grid.Row="3" Margin="5" MinWidth="100"
+                    <DatePicker x:Name="FieldedService_ServiceDate" Grid.Column="2" Grid.Row="1"
+                                Margin="5" MinWidth="150" MaxWidth="150" HorizontalAlignment="Left"/>
+                    <TextBox x:Name="FieldedService_TechName" Grid.Column="2" Grid.Row="2"
+                             Margin="5" MinWidth="150" MaxWidth="150" HorizontalAlignment="Left"/>
+                    <TextBox x:Name="FieldedService_LaborCostString"  Grid.Column="2" Grid.Row="3"
+                             Margin="5" MinWidth="150" MaxWidth="150" HorizontalAlignment="Left"
                              TextAlignment="Right" IsReadOnly="True"/>
-                    <TextBox x:Name="FieldedService_PartsCostString" Grid.Column="2" Grid.Row="4" Margin="5" MinWidth="100"
+                    <TextBox x:Name="FieldedService_PartsCostString" Grid.Column="2" Grid.Row="4"
+                             Margin="5" MinWidth="150" MaxWidth="150" HorizontalAlignment="Left"
                              TextAlignment="Right" IsReadOnly="True"/>
 
-                    </Grid>
+                    <DataGrid x:Name="ServiceLines" SelectedItem="{Binding Path=CurrentServiceLine, Mode=TwoWay, NotifyOnSourceUpdated=True}"
+                                FontSize="12" Margin="5" MinHeight="200" Visibility="Visible"
+                                Grid.Column="1" Grid.Row="5" Grid.ColumnSpan="3"
+                                AutoGenerateColumns="False" MaxWidth="500"
+                                SelectionMode="Single"
+                                CanUserAddRows="False" 
+                                CanUserDeleteRows="False"
+                                CanUserResizeRows="False" 
+                                CanUserSortColumns="False">
+                        <DataGrid.Resources>
+                            <Style x:Key="errorStyle" TargetType="{x:Type DataGrid}">
+                                <Style.Triggers>
+                                    <Trigger Property="Validation.HasError" Value="True">
+                                        <Setter Property="ToolTipService.ToolTip" 
+                                        Value="{Binding RelativeSource={RelativeSource Self},
+                                        Path=(Validation.Errors)[0].ErrorContent}"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.Resources>
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow">
+                                <Setter Property="ValidationErrorTemplate" Value="{x:Null}"/>
+                            </Style>
+                        </DataGrid.RowStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Type" Width="2*"
+                                                Binding="{Binding Path=ServiceLineTypeString}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Description" Width="5*" Binding="{Binding Path=ServiceLineDesc, Mode=TwoWay, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}"
+                            EditingElementStyle="{StaticResource EditCellStyleError}" ElementStyle="{StaticResource CellStyleError}"/>
+                            <DataGridTextColumn Header="Charge" Width="3*" Binding="{Binding Path=ChargeString, Mode=TwoWay, ValidatesOnDataErrors=True,UpdateSourceTrigger=PropertyChanged}"
+                                                EditingElementStyle="{StaticResource EditCellStyleError}" ElementStyle="{StaticResource CellStyleError}"/>
+                            <DataGridCheckBoxColumn Header="?" Width="*" Binding ="{Binding Path=IsValidState, Mode=OneWay}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
                 <!-- Buttons -->
                 <StackPanel Orientation="Vertical" Grid.Column="1" Grid.Row="0" Margin="5">
                     <Button x:Name="Save" Content="Save" Margin="5"/>
                     <Button x:Name="Cancel" Content="Cancel" Margin="5"/>
+                    <TextBlock Text=" "/>
+                    <TextBlock Text=" "/>
+                    <TextBlock Text=" "/>
+                    <Button x:Name="AddPartsLine" Content="+ Parts" Margin="5"/>
+                        <Button x:Name="AddLaborLine" Content="+ Labor" Margin="5"/>
+                        <Button x:Name="RemoveLine" Content="- Line" Margin="5"/>
+                        <!-- hidden fields for button enabling -->
+                        <CheckBox Name="FieldedService_IsValidState" Visibility="Visible"/>
+                        <CheckBox x:Name="ScreenEditingMode" Visibility="Visible"/>
+                        <CheckBox x:Name="CurrentServiceLine_IsValidState" Visibility="Visible"/>
                 </StackPanel>
             </Grid>
             </Border>
-        </Grid>
     </Grid>
 </UserControl>

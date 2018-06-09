@@ -110,7 +110,7 @@ namespace WpfApp5.ViewModels
                 catch (Exception e)
                 {
                     MessageBox.Show(
-                        "Database Error: {e.Message}");
+                        $"Database Error: {e.Message}");
                     return;                
                 }
                 if (_fieldedCar.CarID == 0)

@@ -21,11 +21,10 @@ namespace WpfApp5.Models
         private string _techName;
         private decimal _laborCost;
         private decimal _partsCost;
-        private string _laborCostString;
-        private string _partsCostString;
+
 
         const string MONEY_FORMAT = "{0:0.00}";
-        private readonly string[] _validateProperties = { "ServiceTech", "ServiceDate", "LaborCostString", "PartsCostString" };
+        public readonly string[] _validateProperties = { "TechName", "ServiceDate" };
 
 
         #endregion
@@ -52,13 +51,10 @@ namespace WpfApp5.Models
 
         #region Properties
 
-        public IEnumerable<ServiceLineModel> ServiceLines
-        {
-            get
-            {
-                return _serviceLines;
-            }
-        }
+
+        public ServiceLineModel CurrentServiceLine { get; set; }
+        public List<ServiceLineModel> ServiceList
+            { get { return _serviceLines; } }
 
         public int ServiceID { get; set; }
         public int CarID { get; set; }
@@ -69,6 +65,7 @@ namespace WpfApp5.Models
             set {
                 _serviceDate = value;
                 NotifyOfPropertyChange();
+                NotifyOfPropertyChange(() => IsValidState);
             }
         }
 
@@ -78,70 +75,37 @@ namespace WpfApp5.Models
             set {
                 _techName = value;
                 NotifyOfPropertyChange();
+                NotifyOfPropertyChange(()=>IsValidState);
             }
         }
 
         public decimal LaborCost
         {
             get { return _laborCost; }
-            set {
-                _laborCost = value;
-                LaborCostString = String.Format(MONEY_FORMAT, _laborCost);
-            }
+            set {_laborCost = value; }
         }
 
         public string LaborCostString
         {
             get
             {
-                return _laborCostString;
-            }
-            set
-            {
-                _laborCostString = value;
-                NotifyOfPropertyChange();
-                if (ValidateCostString(value, out _laborCost) is null)
-                {
-                    NotifyOfPropertyChange();
-                    NotifyOfPropertyChange(() => TotalCost);
-                }
+                return String.Format(MONEY_FORMAT, _laborCost);
             }
         }
 
         public decimal PartsCost
         {
             get { return _partsCost; }
-            set
-            {
-                _partsCost = value;
-                PartsCostString = String.Format(MONEY_FORMAT, _partsCost);
-            }
+            set { _partsCost = value; }
         }
 
         public string PartsCostString
         {
             get
             {
-                return _partsCostString;
+                return String.Format(MONEY_FORMAT,_partsCost);
             }
-            set
-            {
-                _partsCostString = value;
-
-                if (ValidateCostString(value, out _partsCost) is null)
-                {
-                    NotifyOfPropertyChange();
-                    NotifyOfPropertyChange(() => TotalCost);
-                }
-            }
-        }
-
-        public string CostsString
-        {
-            get
-            {
-                return $"Parts: {PartsCost:C2}  Labor: {LaborCost:C2}";
-            }
+ 
         }
 
          public decimal TotalCost
@@ -152,32 +116,50 @@ namespace WpfApp5.Models
             }
         }
 
+        public bool IsValidState
+        {
+            get
+            {
+                foreach (string s in _validateProperties)
+                {
+                    if (!(this[s] is null))
+                        return false;
+                }
+                return ServiceList.Any(sv => !sv.IsValidState);
+            }
+        }
+
+
+ 
 
         #endregion
         #region Methods
 
+        public void AddPartsLine()
+        {
+            AddServiceLine(new ServiceLineModel(LineTypes.Parts));
+        }
+
+        public void AddLaborLine()
+        {
+            AddServiceLine(new ServiceLineModel(LineTypes.Labor));
+        }
+
         public void AddServiceLine(ServiceLineModel serviceLine)
         {
             _serviceLines.Add(serviceLine);
-            RecalcCost();
+            CurrentServiceLine = serviceLine;
+            NotifyOfPropertyChange(() => IsValidState);
+            NotifyOfPropertyChange(() => CurrentServiceLine);
         }
 
         public void RemoveServiceLine(ServiceLineModel serviceLine)
         {
             _serviceLines.Remove(serviceLine);
+            NotifyOfPropertyChange(() => IsValidState);
             RecalcCost();
         }
 
-        private bool ValidState()
-        {
- 
-            foreach (string s in _validateProperties)
-            {
-                if (!(this[s] is null))
-                    return false;
-            }
-            return true;
-        }
         private void RecalcCost()
         {
             decimal pCost=0, lCost=0;
@@ -215,12 +197,9 @@ namespace WpfApp5.Models
             
             get
             {
-                decimal junk;
                 switch (columnName)
                 {
                     case "TechName": return FiftyNoBlanks(TechName);
-                    case "LaborCostString":return ValidateCostString(LaborCostString,out junk);
-                    case "PartsCostString":return ValidateCostString(PartsCostString,out junk);
                     case "ServiceDate":
                         if (ServiceDate.Year < 2010 || ServiceDate.Year > 2050) return "Date out of range.";
                         break;
@@ -237,7 +216,8 @@ namespace WpfApp5.Models
         {
             //make a copy of the original in case cancels
             ObjectCopier.CopyFields(_editCopy = new ServiceModel(0), this);
-            CopyDetailLines(_serviceLines, _editServiceLines);
+            _editServiceLines = CopyDetailLines(_serviceLines);
+            NotifyOfPropertyChange(()=>IsValidState);
         }
 
         public void EndEdit()
@@ -250,17 +230,17 @@ namespace WpfApp5.Models
         {
             ObjectCopier.CopyFields(this, _editCopy);
             _editCopy = null;
-            CopyDetailLines(_editServiceLines, _serviceLines);
+            _serviceLines=CopyDetailLines(_editServiceLines);
         }
 
-        private void CopyDetailLines(List<ServiceLineModel> from, List<ServiceLineModel> to)
+        private List<ServiceLineModel> CopyDetailLines(List<ServiceLineModel> from)
         {
-            to = new List<ServiceLineModel>();
+            List<ServiceLineModel> to = new List<ServiceLineModel>();
             foreach (ServiceLineModel item in from)
             {
                 to.Add(new ServiceLineModel(item));
             }
-
+            return to;
         }
 
         #endregion

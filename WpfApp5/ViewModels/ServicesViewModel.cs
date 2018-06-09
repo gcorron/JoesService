@@ -15,9 +15,14 @@ namespace WpfApp5.ViewModels
     class ServicesViewModel:Screen
     {
         #region Private variables, Events, Constructor
+
+
         private List<ServiceModel> _serviceList;
-        BindingList<ServiceModel> _services;
+        private BindingList<ServiceModel> _services;
         private BindingListCollectionView _sortedServices;
+
+        private BindingList<ServiceLineModel> _serviceLines;
+        private BindingListCollectionView _sortedServiceLines;
 
         private ServiceModel _fieldedService;
         private bool _screenEditingMode;
@@ -50,6 +55,7 @@ namespace WpfApp5.ViewModels
             _sortedServices = new BindingListCollectionView(_services);
             _sortedServices.MoveCurrentToFirst();
             _fieldedService = _sortedServices.CurrentItem as ServiceModel;
+
             NotifyOfPropertyChange(() => SortedServices);
             NotifyOfPropertyChange(() => CanDelete);
             return true;
@@ -59,6 +65,7 @@ namespace WpfApp5.ViewModels
 
 
         #region Properties
+
 
         public BindingListCollectionView SortedServices
         {
@@ -72,7 +79,23 @@ namespace WpfApp5.ViewModels
             {
                 _fieldedService = value;
                 NotifyOfPropertyChange(() => FieldedService);
+
+                if (_serviceLines is null)
+                {
+                    //Binding detail lines
+                    _serviceLines = new BindingList<ServiceLineModel>(_fieldedService.ServiceList);
+                    _serviceLines.RaiseListChangedEvents = true;
+                    _sortedServiceLines = new BindingListCollectionView(new BindingList<ServiceLineModel>(_serviceLines));
+                    _sortedServiceLines.Refresh();
+                    NotifyOfPropertyChange(() => ServiceLines);
+                }
             }
+        }
+
+ 
+        public BindingListCollectionView ServiceLines
+        {
+            get { return _sortedServiceLines; }
         }
 
         public bool ScreenEditingMode
@@ -92,10 +115,18 @@ namespace WpfApp5.ViewModels
             get { return !_screenEditingMode; }
         }
 
-        public bool CanDelete
+        public bool CanEdit // keep as property!
         {
             get
-            {     
+            {
+                return _sortedServices.Count > 0;
+            }
+        }
+
+        public bool CanDelete // keep as property!
+        {
+            get
+            {
                 return _sortedServices.Count > 0;
             }
         }
@@ -104,7 +135,8 @@ namespace WpfApp5.ViewModels
 
         #region Methods
 
-        public void SelectFirstCar()
+ 
+         public void SelectFirstService()
         {
             _sortedServices.MoveCurrentToFirst();
         }
@@ -125,6 +157,7 @@ namespace WpfApp5.ViewModels
             FieldedService.CarID = _car.CarID;
             ScreenEditingMode = true;
         }
+
         public void Delete()
         {
             if (MessageBox.Show("Do you want to Delete this service?", "Confirm",
@@ -141,7 +174,46 @@ namespace WpfApp5.ViewModels
 
         }
 
-        public void Save(DateTime fieldedService_ServiceDate, string fieldedService_TechName, decimal fieldedService_PartsCostString, decimal fieldedService_LaborCostString)
+        #region Detail Line Methods
+        public void AddPartsLine(ServiceLineModel ServiceLines_CurrentItem)
+        { AddServiceLine(ServiceLineModel.LineTypes.Parts); }
+
+        public void AddLaborLine(ServiceLineModel ServiceLines_CurrentItem)
+        { AddServiceLine(ServiceLineModel.LineTypes.Labor); }
+
+        public void AddServiceLine(ServiceLineModel.LineTypes lineType)
+        {
+            //FieldedService.AddServiceLine(new ServiceLineModel(lineType));
+
+            ServiceLineModel serviceLine = _sortedServiceLines.AddNew() as ServiceLineModel;
+            serviceLine.ServiceLineType = lineType;
+            // _sortedServiceLines.Refresh();
+        }
+
+        public bool CanAddPartsLine(bool FieldedService_IsValidState, bool ScreenEditingMode,ServiceLineModel CurrentServiceLine)
+        {
+            return CanAddDetailLine(CurrentServiceLine);
+        }
+
+        public bool CanAddLaborLine(bool FieldedService_IsValidState, bool ScreenEditingMode, ServiceLineModel CurrentServiceLine)
+        {
+            return CanAddDetailLine(CurrentServiceLine);
+        }
+
+        public bool CanAddDetailLine(ServiceLineModel CurrentServiceLine)
+        {
+            if (!ScreenEditingMode) return false;
+            if (!FieldedService.IsValidState) return false;
+
+            if (FieldedService is null) return false;
+            if (!(FieldedService.IsValidState)) return false;
+            if (CurrentServiceLine is null) return true;
+            if (CurrentServiceLine.IsValidState) return true;
+            return false;
+        }
+
+#endregion
+        public void Save(bool FieldedService_IsValidState, bool ScreenEditingMode)
         {
 
             bool isnew = _fieldedService.ServiceID == 0;
@@ -161,25 +233,10 @@ namespace WpfApp5.ViewModels
             NotifyOfPropertyChange(() => CanDelete);
             ScreenEditingMode = false;
         }
-
-        public bool CanSave(DateTime fieldedService_ServiceDate, string fieldedService_TechName, decimal fieldedService_PartsCostString, decimal fieldedService_LaborCostString)
+        public bool CanSave(bool FieldedService_IsValidState,bool ScreenEditingMode)
         {
-
-            if (NotScreenEditingMode)
-                return true;
-
-
-
-            string[] _validateProperties = { "ServiceTech", "ServiceDate", "LaborCostString", "PartsCostString" };
-
-
-            foreach (string s in _validateProperties)
-            {
-                if (!(_fieldedService[s] is null))
-                    return false;
-            }
-            return true;
-        }
+                return FieldedService_IsValidState && ScreenEditingMode;
+         }
 
         public void Cancel()
         {
@@ -188,11 +245,18 @@ namespace WpfApp5.ViewModels
                 _sortedServices.CancelNew();
             else if (_sortedServices.IsEditingItem)
                 _sortedServices.CancelEdit();
+ 
+            if (_sortedServiceLines.IsAddingNew)
+                _sortedServiceLines.CancelNew();
+            else if (_sortedServiceLines.IsEditingItem)
+                _sortedServiceLines.CancelEdit();
+
             if (_listBookMark >= 0)
             {
                 _sortedServices.MoveCurrentTo(_listBookMark);
                 _fieldedService = _sortedServices.CurrentItem as ServiceModel;
             }
+            _sortedServiceLines.Refresh();
         }
         #endregion
 

@@ -9,27 +9,49 @@ using static WpfApp5.Models.Validation;
 
 namespace WpfApp5.Models
 {
-    public class ServiceLineModel : PropertyChangedBase, IDataErrorInfo, IEditableObject
+    public class ServiceLineModel : PropertyChangedBase, IDataErrorInfo
     {
 
         private decimal _editLineCharge;
+        private string _serviceLineDesc;
         private decimal _serviceLineCharge;
         private string _chargeString;
 
         public enum LineTypes { Labor = 'L', Parts = 'P' }
         const string MONEY_FORMAT = "{0:0.00}";
 
-        #region Properties
-        public LineTypes ServiceLineType { get; set; }
-        public string ServiceLineDesc { get; set; }
-
         public ServiceLineModel()
         {
 
         }
+
+        public ServiceLineModel(LineTypes lineType)
+        {
+            ServiceLineType = lineType;
+        }
+
         public ServiceLineModel(ServiceLineModel copy)
         {
             ObjectCopier.CopyFields(this, copy);
+        }
+
+        #region Properties
+
+        public LineTypes ServiceLineType { get; set; }
+
+        public string ServiceLineTypeString
+        {
+            get
+            {
+                return ServiceLineType.ToString();
+            }
+        }
+        public string ServiceLineDesc
+        {
+            get { return _serviceLineDesc; }
+            set { _serviceLineDesc = value;
+                NotifyOfPropertyChange(()=>IsValidState);
+            }
         }
 
         public decimal ServiceLineCharge
@@ -51,16 +73,25 @@ namespace WpfApp5.Models
             set
             {
                 _chargeString = value;
+                NotifyOfPropertyChange();
 
-                if (ValidateCostString(value, out _serviceLineCharge) is null)
-                {
-                    NotifyOfPropertyChange();
-                }
+                ValidateCostString(value, out _serviceLineCharge);
+                NotifyOfPropertyChange(() => IsValidState);
+            }
+        }
+        public bool IsValidState
+        {
+            get
+            {
+                if (!(this["ServiceLineDesc"] is null))
+                    return false;
+                if (!(this["ChargeString"] is null))
+                    return false;
+                return true;
             }
         }
 
         #endregion
-
 
         #region Interface Implementations
 
@@ -69,34 +100,17 @@ namespace WpfApp5.Models
 
         public string this[string columnName]
         {
-
             get
             {
                 decimal junk;
                 switch (columnName)
                 {
-                    case "ServiceDesc": return FiftyNoBlanks(ServiceLineDesc);
+                    case "ServiceLineDesc": return FiftyNoBlanks(ServiceLineDesc);
                     case "ChargeString": return ValidateCostString(ChargeString, out junk);
                 }
                 return null;
             }
         }
-
-        //IEditableObject
-        public void BeginEdit()
-        {
-            _editLineCharge = ServiceLineCharge;
-        }
-
-        public void EndEdit()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void CancelEdit()
-        {
-            throw new NotImplementedException();
-        }
-    }
-#endregion
+     }
+    #endregion
 }
