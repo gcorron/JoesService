@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:WpfApp5"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:cal="clr-namespace:Caliburn.Micro;assembly=Caliburn.Micro"
              mc:Ignorable="d" Background="Bisque" FontSize="16" 
              d:DesignHeight="400" d:DesignWidth="800"
              Width="Auto" Height="Auto">
@@ -19,21 +20,6 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
-        <Style x:Key="EditCellStyleError" TargetType="{x:Type TextBox}">
-            <Style.Triggers>
-                <Trigger Property="Validation.HasError" Value="true">
-                    <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors)[0].ErrorContent}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-        <Style x:Key="CellStyleError" TargetType="{x:Type TextBlock}">
-            <Style.Triggers>
-                <Trigger Property="Validation.HasError" Value="true">
-                    <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors)[0].ErrorContent}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-        
         <Style TargetType="DatePicker">
             <Style.Triggers>
                 <Trigger Property="Validation.HasError" Value="true">
@@ -43,11 +29,10 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
-
-        <CollectionViewSource x:Key="LineTypes" Source="{Binding Path=LineTypesCollection}" />
     </UserControl.Resources>
 
-    <Grid  Grid.IsSharedSizeScope="True"> <!-- for the entire control -->
+    <Grid  Grid.IsSharedSizeScope="True">
+        <!-- for the entire control -->
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="20"/>
             <ColumnDefinition Width="350"/>
@@ -61,47 +46,47 @@
             <RowDefinition Height="20"/>
         </Grid.RowDefinitions>
 
-              <!-- left side of control -->
-            <Border x:Name="BorderL" Grid.Row="1" Grid.Column="1" BorderBrush="Black" BorderThickness="2"/>
-            <Grid Grid.Row="1" Grid.Column="1" IsEnabled="{Binding NotScreenEditingMode}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto" SharedSizeGroup="ButtonPanel"/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+        <!-- left side of control -->
+        <Border x:Name="BorderL" Grid.Row="1" Grid.Column="1" BorderBrush="Black" BorderThickness="2"/>
+        <Grid Grid.Row="1" Grid.Column="1" IsEnabled="{Binding NotScreenEditingMode}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto" SharedSizeGroup="ButtonPanel"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
 
-                <ListView  x:Name="SortedServices"
+            <ListView  x:Name="SortedServices"
                            SelectedItem="{Binding Path=FieldedService, Mode=TwoWay}"
                            FontSize="12" Margin="5">
-                    <ListView.View>
-                        <GridView>
-                            <GridViewColumn Header="Date" Width="75"
-                                            DisplayMemberBinding="{Binding ServiceDate, StringFormat={}{0:d}}"/>
-                            <GridViewColumn Header="Charge" Width="90">
-                                <GridViewColumn.CellTemplate>
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Date" Width="75"
+                            DisplayMemberBinding="{Binding ServiceDate, StringFormat={}{0:d}}"/>
+                        <GridViewColumn Header="Charge" Width="90">
+                            <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Width="75" Text="{Binding TotalCost, StringFormat={}{0:C2}}" TextAlignment="Right"/>
                                 </DataTemplate>
-                                </GridViewColumn.CellTemplate>
-                            </GridViewColumn>
-                            <GridViewColumn Width="75" Header="Tech Name" DisplayMemberBinding="{Binding TechName}">
-                            </GridViewColumn>
-                        </GridView>
-                    </ListView.View>
-                </ListView>
-                
-                <StackPanel Orientation="Vertical" Grid.Column="1" Grid.Row="1" Margin="5">
-                    <Button x:Name="Edit" Content="Edit" Margin="5"/>
-                    <Button x:Name="Add" Content="Add" Margin="5"/>
-                    <Button x:Name="Delete" Content="Delete" Margin="5" IsEnabled="{Binding CanDelete}"/>
-                </StackPanel>
-            </Grid>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Width="75" Header="Tech Name" DisplayMemberBinding="{Binding TechName}">
+                        </GridViewColumn>
+                    </GridView>
+                </ListView.View>
+            </ListView>
 
-            <!-- right side of control -->
-            <Border x:Name="BorderE" Grid.Row="1" Grid.Column="3" BorderBrush="Black" BorderThickness="2">
+            <StackPanel Orientation="Vertical" Grid.Column="1" Grid.Row="1" Margin="5">
+                <Button x:Name="Edit" Content="Edit" Margin="5"/>
+                <Button x:Name="Add" Content="Add" Margin="5"/>
+                <Button x:Name="Delete" Content="Delete" Margin="5" IsEnabled="{Binding CanDelete}"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- right side of control -->
+        <Border x:Name="BorderE" Grid.Row="1" Grid.Column="3" BorderBrush="Black" BorderThickness="2">
             <Grid Grid.Row="0" Grid.Column="2" IsEnabled="{Binding ScreenEditingMode}" Margin="5,0,0,0">
                 <Grid.RowDefinitions>
                     <RowDefinition/>
@@ -140,39 +125,104 @@
                              Margin="5" MinWidth="150" MaxWidth="150" HorizontalAlignment="Left"
                              TextAlignment="Right" IsReadOnly="True"/>
 
-                    <DataGrid x:Name="ServiceLines" SelectedItem="{Binding Path=CurrentServiceLine, Mode=TwoWay, NotifyOnSourceUpdated=True}"
+                    <DataGrid x:Name="FieldedService_ServiceLines" SelectedItem="{Binding Path=CurrentServiceLine, Mode=TwoWay}"
                                 FontSize="12" Margin="5" MinHeight="200" Visibility="Visible"
                                 Grid.Column="1" Grid.Row="5" Grid.ColumnSpan="3"
                                 AutoGenerateColumns="False" MaxWidth="500"
                                 SelectionMode="Single"
-                                CanUserAddRows="False" 
+                                SelectionUnit="Cell"
+                                CanUserAddRows="True" 
                                 CanUserDeleteRows="False"
                                 CanUserResizeRows="False" 
-                                CanUserSortColumns="False">
+                                CanUserSortColumns="False"
+                                AlternatingRowBackground="Bisque"
+                                AlternationCount="2"
+                                DataGridCell.Selected="DataGrid_GotFocus">
                         <DataGrid.Resources>
-                            <Style x:Key="errorStyle" TargetType="{x:Type DataGrid}">
+                            <Style x:Key="EditCellStyleError" TargetType="{x:Type TextBox}">
                                 <Style.Triggers>
-                                    <Trigger Property="Validation.HasError" Value="True">
-                                        <Setter Property="ToolTipService.ToolTip" 
-                                        Value="{Binding RelativeSource={RelativeSource Self},
-                                        Path=(Validation.Errors)[0].ErrorContent}"/>
+                                    <Trigger Property="Validation.HasError" Value="true">
+                                        <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors)[0].ErrorContent}"/>
                                     </Trigger>
                                 </Style.Triggers>
                             </Style>
-                        </DataGrid.Resources>
-                        <DataGrid.RowStyle>
-                            <Style TargetType="DataGridRow">
-                                <Setter Property="ValidationErrorTemplate" Value="{x:Null}"/>
+                            <Style x:Key="CellStyleError" TargetType="{x:Type TextBlock}">
+                                <Style.Triggers>
+                                    <Trigger Property="Validation.HasError" Value="true">
+                                        <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors)[0].ErrorContent}"/>
+                                    </Trigger>
+                                </Style.Triggers>
                             </Style>
-                        </DataGrid.RowStyle>
+
+                            <CollectionViewSource x:Key="LineTypes" Source="{Binding ComboBoxTypes}"/>
+
+                        </DataGrid.Resources>
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Type" Width="2*"
-                                                Binding="{Binding Path=ServiceLineTypeString}" IsReadOnly="True"/>
-                            <DataGridTextColumn Header="Description" Width="5*" Binding="{Binding Path=ServiceLineDesc, Mode=TwoWay, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}"
-                            EditingElementStyle="{StaticResource EditCellStyleError}" ElementStyle="{StaticResource CellStyleError}"/>
-                            <DataGridTextColumn Header="Charge" Width="3*" Binding="{Binding Path=ChargeString, Mode=TwoWay, ValidatesOnDataErrors=True,UpdateSourceTrigger=PropertyChanged}"
-                                                EditingElementStyle="{StaticResource EditCellStyleError}" ElementStyle="{StaticResource CellStyleError}"/>
-                            <DataGridCheckBoxColumn Header="?" Width="*" Binding ="{Binding Path=IsValidState, Mode=OneWay}"/>
+                            <!-- Column: ServiceLineType -->
+                            <DataGridTemplateColumn Header="Type" Width="2*">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Path=ServiceLineTypeString}" HorizontalAlignment="Center"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                                <DataGridTemplateColumn.CellEditingTemplate>
+                                    <DataTemplate>
+                                        <ComboBox SelectedValue="{Binding Path=ServiceLineType, Mode=TwoWay
+                                        ,UpdateSourceTrigger=PropertyChanged}"
+                                        ItemsSource="{Binding Source={StaticResource LineTypes}}"
+                                        DisplayMemberPath="Name"
+                                        SelectedValuePath="Value"
+                                        IsEditable="False"
+                                        StaysOpenOnEdit ="True"
+                                        IsTextSearchEnabled="True"
+                                        TextSearch.TextPath="Name"
+                                        FocusManager.FocusedElement="{Binding RelativeSource={RelativeSource Self}}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellEditingTemplate>
+                            </DataGridTemplateColumn>
+                            <!-- Column: ServiceLineDesc -->
+                            <DataGridTextColumn Header="Description" Width="5*" Binding="{Binding Path=ServiceLineDesc, 
+                                Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                EditingElementStyle="{StaticResource EditCellStyleError}" ElementStyle="{StaticResource CellStyleError}"/>
+                            <!-- Column: ServiceLineCharge -->
+                            <DataGridTemplateColumn Header="Charge" Width="3*">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Path=ChargeString}"
+                                                   HorizontalAlignment="Right"
+                                                   Style="{StaticResource CellStyleError}"
+                                                   />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                                <DataGridTemplateColumn.CellEditingTemplate>
+                                    <DataTemplate>
+                                        <TextBox Text="{Binding Path=ChargeString, Mode=TwoWay
+                                        ,UpdateSourceTrigger=LostFocus}"
+                                         HorizontalAlignment="Right"
+                                         Style="{StaticResource EditCellStyleError}" 
+                                         FocusManager.FocusedElement="{Binding RelativeSource={RelativeSource Self}}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellEditingTemplate>
+                            </DataGridTemplateColumn>
+ <!--                           <DataGridTemplateColumn>
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Command="{Binding Path=DeleteRowCommand}" Width="20"
+                                         FocusManager.FocusedElement="{Binding RelativeSource={RelativeSource Self}}">
+                                            <Image Width="20">
+                                                <Image.Source>
+                                                    <BitmapImage UriSource="/Resources/DeleteRed.ico"/>
+                                                </Image.Source>
+                                            </Image>
+                                       </Button>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+-->
+                            <DataGridCheckBoxColumn Header="Delete" Width="2*" Binding ="{Binding Path=Delete, Mode=TwoWay
+                                ,UpdateSourceTrigger=PropertyChanged}"
+                                                    FocusManager.FocusedElement="{Binding RelativeSource={RelativeSource Self}}"/>
+                            <DataGridCheckBoxColumn Header="?" Width="*" Binding ="{Binding Path=IsValidState, Mode=OneWay}" Visibility="Hidden"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
@@ -183,15 +233,13 @@
                     <TextBlock Text=" "/>
                     <TextBlock Text=" "/>
                     <TextBlock Text=" "/>
-                    <Button x:Name="AddPartsLine" Content="+ Parts" Margin="5"/>
-                        <Button x:Name="AddLaborLine" Content="+ Labor" Margin="5"/>
-                        <Button x:Name="RemoveLine" Content="- Line" Margin="5"/>
-                        <!-- hidden fields for button enabling -->
-                        <CheckBox Name="FieldedService_IsValidState" Visibility="Visible"/>
-                        <CheckBox x:Name="ScreenEditingMode" Visibility="Visible"/>
-                        <CheckBox x:Name="CurrentServiceLine_IsValidState" Visibility="Visible"/>
+                    <!-- hidden fields for button enabling -->
+                    <CheckBox Name="FieldedService_IsValidState" Visibility="Visible"/>
+                    <CheckBox x:Name="ScreenEditingMode" Visibility="Visible"/>
+                    <CheckBox x:Name="CanAddDetailLine" Visibility="Visible"/>
+                    <CheckBox x:Name="FieldedService_ServiceLinesAreValidState" Visibility="Visible"/>
                 </StackPanel>
             </Grid>
-            </Border>
+        </Border>
     </Grid>
 </UserControl>

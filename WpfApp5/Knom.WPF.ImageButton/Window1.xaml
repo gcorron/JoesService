@@ -1,0 +1,20 @@
+﻿<Window x:Class="Knom.WPF.ImageButton.Window1"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Window1" Height="300" Width="300"
+        xmlns:my="clr-namespace:Knom.WPF.ImageButton">
+    <StackPanel>
+        <Button VerticalAlignment="Top" HorizontalAlignment="Left" Click="Button_Click" Margin="10">
+            <StackPanel Orientation="Horizontal" Margin="10">
+                <Image Source="calendar.png" Width="16" Height="16" Margin="0,0,10,0"/>
+                <TextBlock>Simple Button</TextBlock>
+            </StackPanel>
+        </Button>
+
+        <my:ImageButton Image="calendar.png" Text="Inherited Button" HorizontalAlignment="Left" VerticalAlignment="Top"
+                        ImageWidth="16" ImageHeight="16" Margin="10" Click="Button_Click" />
+
+        <my:ImageButton2 Image="calendar.png" Text="UserControl" HorizontalAlignment="Left" VerticalAlignment="Top"
+                        ImageWidth="16" ImageHeight="16" Margin="10" ButtonBase.Click="Button_Click" />
+    </StackPanel>
+</Window>

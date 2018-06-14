@@ -52,21 +52,26 @@ namespace WpfApp5
 
         public static List<ServiceModel> GetServices(int CarID,HandleError handleError)
         {
+            var lookup = new Dictionary<int, ServiceModel>();
             try
             {
                 using (IDbConnection connection = DataHelper.GetJoesDBConnection())
                 {
-                    ServiceModel SM = new ServiceModel(); ;
-                    return connection.Query<ServiceModel,ServiceLineModel,ServiceModel>
+                    connection.Query<ServiceModel,ServiceLineModel,ServiceModel>
                         ($"SelectServicesForCar @CarID", (S,L) =>
                         {
-                            if (SM.CarID==0)
-                                SM = S;
-                            SM.AddServiceLine(L);
+                            ServiceModel SM;
+                            if (!lookup.TryGetValue(S.ServiceID, out SM))
+                            {
+                                lookup.Add(S.ServiceID, SM = S);
+                            }
+
+                            SM.ServiceLineList.Add(L);
                             return SM;
-                        }
-                        ,new { CarID },splitOn:"ServiceLineType").ToList() as List<ServiceModel>;
+ 
+                        } , new { CarID },splitOn: "ServiceID");
                 }
+                return lookup.Values.ToList() as List<ServiceModel>;
             }
             catch (Exception e)
             {
@@ -107,6 +112,21 @@ namespace WpfApp5
 
                     if (results[0] >= 0 && service.ServiceID <= 0)
                         service.ServiceID = results[0];
+
+                    List<ServiceLineModel> SL = service.ServiceLineList;
+                    if (SL.Count > 255)
+                        throw new Exception("Too many detail lines!");
+                    else
+                    {
+                        byte b=0;
+                        foreach (ServiceLineModel s in SL)
+                        {
+                            s.ServiceLineOrder = b++; //save the order
+                            s.ServiceID = service.ServiceID;
+                        }
+                        // stored procedure deletes all lines before inserting new ones
+                        connection.Execute($"dbo.UpdateServiceLine @ServiceID, @ServiceLineOrder, @ServiceLineType, @ServiceLineDesc, @ServiceLineCharge", SL);
+                    }
                 }
             }
             catch (Exception e)

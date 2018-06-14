@@ -77,6 +77,7 @@
     <Compile Include="Models\ServiceLineModel.cs" />
     <Compile Include="Models\Validation.cs" />
     <Compile Include="ObjectCopier.cs" />
+    <Compile Include="RelayCommand.cs" />
     <Compile Include="ViewModels\CarsViewModel.cs" />
     <Compile Include="ViewModels\ICarsViewModel.cs" />
     <Compile Include="ViewModels\ServicesViewModel.cs" />
@@ -136,6 +137,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\DeleteRed.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Input;
 using WpfApp5.Models;
 using static WpfApp5.DataAccess;
 
@@ -21,8 +22,6 @@ namespace WpfApp5.ViewModels
         private BindingList<ServiceModel> _services;
         private BindingListCollectionView _sortedServices;
 
-        private BindingList<ServiceLineModel> _serviceLines;
-        private BindingListCollectionView _sortedServiceLines;
 
         private ServiceModel _fieldedService;
         private bool _screenEditingMode;
@@ -46,6 +45,11 @@ namespace WpfApp5.ViewModels
             _serviceList = DataAccess.GetServices(car.CarID, _handleError); // load up Services from DB
             if (_serviceList is null)
                 return false;
+            foreach(ServiceModel SM in _serviceList)
+            {
+                SM.RecalcCost();
+            }
+
             _serviceList.Sort();
 
             //Binding
@@ -64,8 +68,8 @@ namespace WpfApp5.ViewModels
         #endregion
 
 
-        #region Properties
-
+ 
+        // Objects
 
         public BindingListCollectionView SortedServices
         {
@@ -78,26 +82,22 @@ namespace WpfApp5.ViewModels
             set
             {
                 _fieldedService = value;
-                NotifyOfPropertyChange(() => FieldedService);
-
-                if (_serviceLines is null)
-                {
-                    //Binding detail lines
-                    _serviceLines = new BindingList<ServiceLineModel>(_fieldedService.ServiceList);
-                    _serviceLines.RaiseListChangedEvents = true;
-                    _sortedServiceLines = new BindingListCollectionView(new BindingList<ServiceLineModel>(_serviceLines));
-                    _sortedServiceLines.Refresh();
-                    NotifyOfPropertyChange(() => ServiceLines);
-                }
+                NotifyOfPropertyChange();
             }
         }
 
- 
-        public BindingListCollectionView ServiceLines
+        public List<NameValueByte> ComboBoxTypes // a list of line type Name/Value pairs for the View
         {
-            get { return _sortedServiceLines; }
+            get
+            {
+                var LineTypesList = new List<NameValueByte>();
+                LineTypesList.Add(new NameValueByte() { Name = "Labor", Value = ServiceLineModel.LineTypes.Labor });
+                LineTypesList.Add(new NameValueByte() { Name = "Parts", Value = ServiceLineModel.LineTypes.Parts });
+                return LineTypesList;
+            }
         }
 
+        //Misc. State
         public bool ScreenEditingMode
         {
             get { return _screenEditingMode; }
@@ -115,36 +115,20 @@ namespace WpfApp5.ViewModels
             get { return !_screenEditingMode; }
         }
 
+        //Actions
+
+        public void Edit()
+        {
+            _sortedServices.EditItem(_sortedServices.CurrentItem);
+
+            ScreenEditingMode = true;
+        }
         public bool CanEdit // keep as property!
         {
             get
             {
                 return _sortedServices.Count > 0;
             }
-        }
-
-        public bool CanDelete // keep as property!
-        {
-            get
-            {
-                return _sortedServices.Count > 0;
-            }
-        }
-
-        #endregion
-
-        #region Methods
-
- 
-         public void SelectFirstService()
-        {
-            _sortedServices.MoveCurrentToFirst();
-        }
-
-        public void Edit()
-        {
-            _sortedServices.EditItem(_sortedServices.CurrentItem);
-            ScreenEditingMode = true;
         }
 
         public void Add()
@@ -155,6 +139,7 @@ namespace WpfApp5.ViewModels
                 _listBookMark = _sortedServices.CurrentPosition;
             FieldedService = _sortedServices.AddNew() as ServiceModel;
             FieldedService.CarID = _car.CarID;
+            FieldedService.ServiceDate = DateTime.Today;
             ScreenEditingMode = true;
         }
 
@@ -171,54 +156,16 @@ namespace WpfApp5.ViewModels
                     NotifyOfPropertyChange(() => CanDelete);
                 }
             }
-
         }
-
-        #region Detail Line Methods
-        public void AddPartsLine(ServiceLineModel ServiceLines_CurrentItem)
-        { AddServiceLine(ServiceLineModel.LineTypes.Parts); }
-
-        public void AddLaborLine(ServiceLineModel ServiceLines_CurrentItem)
-        { AddServiceLine(ServiceLineModel.LineTypes.Labor); }
-
-        public void AddServiceLine(ServiceLineModel.LineTypes lineType)
-        {
-            //FieldedService.AddServiceLine(new ServiceLineModel(lineType));
-
-            ServiceLineModel serviceLine = _sortedServiceLines.AddNew() as ServiceLineModel;
-            serviceLine.ServiceLineType = lineType;
-            // _sortedServiceLines.Refresh();
-        }
-
-        public bool CanAddPartsLine(bool FieldedService_IsValidState, bool ScreenEditingMode,ServiceLineModel CurrentServiceLine)
-        {
-            return CanAddDetailLine(CurrentServiceLine);
-        }
-
-        public bool CanAddLaborLine(bool FieldedService_IsValidState, bool ScreenEditingMode, ServiceLineModel CurrentServiceLine)
-        {
-            return CanAddDetailLine(CurrentServiceLine);
-        }
-
-        public bool CanAddDetailLine(ServiceLineModel CurrentServiceLine)
-        {
-            if (!ScreenEditingMode) return false;
-            if (!FieldedService.IsValidState) return false;
-
-            if (FieldedService is null) return false;
-            if (!(FieldedService.IsValidState)) return false;
-            if (CurrentServiceLine is null) return true;
-            if (CurrentServiceLine.IsValidState) return true;
-            return false;
-        }
-
-#endregion
-        public void Save(bool FieldedService_IsValidState, bool ScreenEditingMode)
+        public void Save(bool FieldedService_IsValidState, bool screenEditingMode)
         {
 
             bool isnew = _fieldedService.ServiceID == 0;
 
-            DataAccess.UpdateService(_fieldedService,_handleError);
+            _fieldedService.ServiceLineList.RemoveAll(SL => SL.Delete != 0);
+
+
+            DataAccess.UpdateService(_fieldedService, _handleError);
             if (isnew)
             {
                 _sortedServices.CommitNew();
@@ -230,13 +177,14 @@ namespace WpfApp5.ViewModels
             }
             _serviceList.Sort();
             _sortedServices.Refresh();
+            //_fieldedService.ServiceLines.Refresh();
             NotifyOfPropertyChange(() => CanDelete);
             ScreenEditingMode = false;
         }
-        public bool CanSave(bool FieldedService_IsValidState,bool ScreenEditingMode)
+        public bool CanSave(bool FieldedService_IsValidState, bool screenEditingMode)
         {
-                return FieldedService_IsValidState && ScreenEditingMode;
-         }
+            return FieldedService_IsValidState && ScreenEditingMode;
+        }
 
         public void Cancel()
         {
@@ -245,20 +193,30 @@ namespace WpfApp5.ViewModels
                 _sortedServices.CancelNew();
             else if (_sortedServices.IsEditingItem)
                 _sortedServices.CancelEdit();
- 
-            if (_sortedServiceLines.IsAddingNew)
-                _sortedServiceLines.CancelNew();
-            else if (_sortedServiceLines.IsEditingItem)
-                _sortedServiceLines.CancelEdit();
+
 
             if (_listBookMark >= 0)
             {
-                _sortedServices.MoveCurrentTo(_listBookMark);
-                _fieldedService = _sortedServices.CurrentItem as ServiceModel;
+                if (!_sortedServices.MoveCurrentToPosition(_listBookMark))
+                    return;
+                FieldedService = _sortedServices.CurrentItem as ServiceModel;
             }
-            _sortedServiceLines.Refresh();
         }
-        #endregion
 
+        public bool CanDelete // keep as property!
+        {
+            get
+            {
+                return _sortedServices.Count > 0;
+            }
+        }
     }
+
+    // Tiny helper class
+    public class NameValueByte
+    {
+        public ServiceLineModel.LineTypes Value { get; set; }
+        public string Name { get; set; }
+    }
+
 }

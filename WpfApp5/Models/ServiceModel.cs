@@ -2,9 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Windows.Data;
 using static WpfApp5.Models.ServiceLineModel;
 using static WpfApp5.Models.Validation;
 
@@ -12,24 +12,16 @@ namespace WpfApp5.Models
 {
     public class ServiceModel : PropertyChangedBase, IComparable<ServiceModel>, IDataErrorInfo, IEditableObject
     {
-        #region Private variables
-
-        private List<ServiceLineModel> _serviceLines;
+ 
         private ServiceModel _editCopy;
         private List<ServiceLineModel> _editServiceLines;
-        private DateTime _serviceDate;
-        private string _techName;
-        private decimal _laborCost;
-        private decimal _partsCost;
 
-
+ 
         const string MONEY_FORMAT = "{0:0.00}";
         public readonly string[] _validateProperties = { "TechName", "ServiceDate" };
 
 
-        #endregion
-
-        #region Constructor
+        // Constructors
         public ServiceModel(int carID)
         {
             CarID = carID;
@@ -43,20 +35,25 @@ namespace WpfApp5.Models
 
         private void Initialize()
         {
-            ServiceDate = DateTime.Today;
-            _serviceLines = new List<ServiceLineModel>();
+            _serviceLineList = new List<ServiceLineModel>();
         }
 
-        #endregion
-
-        #region Properties
-
-
+        // Properties
         public ServiceLineModel CurrentServiceLine { get; set; }
-        public List<ServiceLineModel> ServiceList
-            { get { return _serviceLines; } }
+
+        public List<ServiceLineModel> ServiceLineList
+        {
+            get
+            {
+                return
+                _serviceLineList;
+            }
+        }
+        private List<ServiceLineModel> _serviceLineList;
+
 
         public int ServiceID { get; set; }
+
         public int CarID { get; set; }
 
         public DateTime ServiceDate
@@ -68,6 +65,8 @@ namespace WpfApp5.Models
                 NotifyOfPropertyChange(() => IsValidState);
             }
         }
+        private DateTime _serviceDate;
+
 
         public string TechName
         {
@@ -78,12 +77,18 @@ namespace WpfApp5.Models
                 NotifyOfPropertyChange(()=>IsValidState);
             }
         }
+        private string _techName;
 
         public decimal LaborCost
         {
             get { return _laborCost; }
-            set {_laborCost = value; }
+            set
+            {
+                _laborCost = value;
+                NotifyOfPropertyChange(()=>LaborCostString);
+            }
         }
+        private decimal _laborCost;
 
         public string LaborCostString
         {
@@ -96,8 +101,13 @@ namespace WpfApp5.Models
         public decimal PartsCost
         {
             get { return _partsCost; }
-            set { _partsCost = value; }
+            set
+            {
+                _partsCost = value;
+                NotifyOfPropertyChange(()=>PartsCostString);
+            }
         }
+        private decimal _partsCost;
 
         public string PartsCostString
         {
@@ -108,7 +118,7 @@ namespace WpfApp5.Models
  
         }
 
-         public decimal TotalCost
+        public decimal TotalCost
         {
             get
             {
@@ -120,51 +130,55 @@ namespace WpfApp5.Models
         {
             get
             {
-                foreach (string s in _validateProperties)
-                {
-                    if (!(this[s] is null))
-                        return false;
-                }
-                return ServiceList.Any(sv => !sv.IsValidState);
+                if (_validateProperties.Any(s => !(this[s] is null)))
+                    return false;
+                return true;
+            }
+        }
+
+        public bool ServiceLinesAreValidState //property is notified whenever fields change within the collection
+        {
+            get
+            {
+                if (ServiceLineList is null)
+                    return false;
+                return ServiceLineList.Any(s => !s.IsValidState);
             }
         }
 
 
+        private BindingList<ServiceLineModel> _blServiceLines;
+        private BindingListCollectionView _cvServiceLines;
+
+        public BindingListCollectionView ServiceLines
+        {
+            get {
+                if (_cvServiceLines is null)
+                    BindServiceLineList();
+                return _cvServiceLines;
+            }
+        }
+
+        private void BindServiceLineList()
+        {
+            //Binding detail lines
+            _blServiceLines = new BindingList<ServiceLineModel>(ServiceLineList);
+
+            //need to keep totals updated whenever a detail line changes
+            _blServiceLines.RaiseListChangedEvents = true;
+            _blServiceLines.ListChanged += new System.ComponentModel.ListChangedEventHandler(OnListChanged);
+
+            _cvServiceLines = new BindingListCollectionView(_blServiceLines);
+            _cvServiceLines.Refresh();
+ 
+        }
  
 
-        #endregion
-        #region Methods
-
-        public void AddPartsLine()
-        {
-            AddServiceLine(new ServiceLineModel(LineTypes.Parts));
-        }
-
-        public void AddLaborLine()
-        {
-            AddServiceLine(new ServiceLineModel(LineTypes.Labor));
-        }
-
-        public void AddServiceLine(ServiceLineModel serviceLine)
-        {
-            _serviceLines.Add(serviceLine);
-            CurrentServiceLine = serviceLine;
-            NotifyOfPropertyChange(() => IsValidState);
-            NotifyOfPropertyChange(() => CurrentServiceLine);
-        }
-
-        public void RemoveServiceLine(ServiceLineModel serviceLine)
-        {
-            _serviceLines.Remove(serviceLine);
-            NotifyOfPropertyChange(() => IsValidState);
-            RecalcCost();
-        }
-
-        private void RecalcCost()
+        internal void RecalcCost()
         {
             decimal pCost=0, lCost=0;
 
-            foreach(ServiceLineModel serviceLine in _serviceLines)
+            foreach(ServiceLineModel serviceLine in _serviceLineList)
             {
                 switch (serviceLine.ServiceLineType)
                 {
@@ -181,20 +195,60 @@ namespace WpfApp5.Models
         }
 
 
-        #endregion  
-        #region Implements IComparable
+         private void OnListChanged(object sender, System.ComponentModel.ListChangedEventArgs args)
+        {
+            int i, j;
+            decimal lc, pc;
+
+            i = args.NewIndex;
+            j = -1;
+
+            if (i >= 0)
+                j = args.OldIndex;
+            else
+                i = args.OldIndex;
+
+            if (i < 0)
+                return;
+
+            var SLL = ServiceLineList;
+
+            if (i >= SLL.Count)
+                return;
+
+            switch (args.ListChangedType)
+            {
+                case ListChangedType.ItemChanged:
+
+                    decimal[] changes = SLL[i].ChargeChanges();
+
+                    lc = LaborCost + changes[0];
+                    pc = PartsCost + changes[1];
+
+                    if (j >= 0)
+                    {
+                        changes = SLL[j].ChargeChanges();
+                        lc -= changes[0];
+                        pc -= changes[1];
+                    }
+                    LaborCost = lc;
+                    PartsCost = pc;
+                    break;
+            }
+        }
+
+        // Implements IComparable
         public int CompareTo(ServiceModel rightService)
         {
             ServiceModel leftService = this;
             return leftService.ServiceDate.CompareTo(rightService.ServiceDate);
         }
-        #endregion
-        #region Implements IDataErrorInfo
+
+        // Implements IDataErrorInfo
         public string Error => throw new NotImplementedException();
 
         public string this[string columnName]
         {
-            
             get
             {
                 switch (columnName)
@@ -207,16 +261,18 @@ namespace WpfApp5.Models
                 return null;
             }
         }
-
       
-        #endregion
-
-        #region Implements IEditableObject
+        // Implements IEditableObject
         public void BeginEdit()
         {
             //make a copy of the original in case cancels
             ObjectCopier.CopyFields(_editCopy = new ServiceModel(0), this);
-            _editServiceLines = CopyDetailLines(_serviceLines);
+            CopyDetailLines(ref _editServiceLines,_serviceLineList);
+            foreach (ServiceLineModel SL in _serviceLineList)
+            {
+                SL.SnapShotCharge();
+            }
+
             NotifyOfPropertyChange(()=>IsValidState);
         }
 
@@ -228,22 +284,31 @@ namespace WpfApp5.Models
 
         public void CancelEdit()
         {
+            if (_cvServiceLines.IsAddingNew)
+                _cvServiceLines.CancelNew();
+            else if (_cvServiceLines.IsEditingItem)
+                _cvServiceLines.CancelEdit();
+
             ObjectCopier.CopyFields(this, _editCopy);
             _editCopy = null;
-            _serviceLines=CopyDetailLines(_editServiceLines);
+
+            CopyDetailLines(ref _serviceLineList,_editServiceLines);
+
+            _cvServiceLines.Refresh();
         }
 
-        private List<ServiceLineModel> CopyDetailLines(List<ServiceLineModel> from)
+        private void CopyDetailLines(ref List<ServiceLineModel> to, List<ServiceLineModel> from)
         {
-            List<ServiceLineModel> to = new List<ServiceLineModel>();
+            if (to is null)
+                to = new List<ServiceLineModel>();
+            else
+                to.Clear();
             foreach (ServiceLineModel item in from)
             {
                 to.Add(new ServiceLineModel(item));
             }
-            return to;
         }
 
-        #endregion
 
     }
 }

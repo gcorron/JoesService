@@ -8,21 +8,13 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-
 namespace WpfApp5.Models
 {
     public class CarModel : Caliburn.Micro.PropertyChangedBase, IComparable<CarModel>, IDataErrorInfo, IEditableObject, ICarModel
     {
 
-        #region Private variables
-        private string _make;
-        private string _model;
-        private int _year;
-        private string _owner;
         private CarModel _editCopy;
-        #endregion
 
-        #region Properties
         public int CarID { get; set; }
 
         public string Make
@@ -35,6 +27,7 @@ namespace WpfApp5.Models
                 NotifyOfPropertyChange(() => ToString);
             }
         }
+        private string _make;
 
         public string Model
         {
@@ -46,6 +39,8 @@ namespace WpfApp5.Models
                 NotifyOfPropertyChange(() => ToString);
             }
         }
+        private string _model;
+
 
         public int Year
         {
@@ -57,6 +52,7 @@ namespace WpfApp5.Models
                 NotifyOfPropertyChange(() => ToString);
             }
         }
+        private int _year;
 
         public string Owner
         {
@@ -68,48 +64,54 @@ namespace WpfApp5.Models
                 //                NotifyOfPropertyChange(() => ToString);
             }
         }
+        private string _owner;
 
-        public bool HasService { get; set; }
 
         public new string ToString
         {
-  
-
             get
             {
                 if (_editCopy is null)
-                    return $"{Year} {Make} {Model}";
+                    return $"{Owner}'s {Year} {Make} {Model}";
                 else
-                    return $"{_editCopy.Year} {_editCopy.Make} {_editCopy.Model}";
+                    return $"{_editCopy.Owner}'s {_editCopy.Year} {_editCopy.Make} {_editCopy.Model}";
             }
         }
 
+        public bool HasService { get; set; }
 
-        #endregion
 
-        #region Implements IComparable
+        //IComparable
         public int CompareTo(CarModel rightCar)
         {
+            int result;
+
             CarModel leftCar = this;
-            return leftCar.ToString.CompareTo(rightCar.ToString);
+            result = leftCar.Year.CompareTo(rightCar.Year);
+            if (result==0)
+                result = leftCar.Make.CompareTo(rightCar.Make);
+            if (result == 0)
+                result = leftCar.Model.CompareTo(rightCar.Model);
+
+
+            return result;
         }
 
-        #endregion
-        #region Implements IDataErrorInfo
-        private string _error;
+        // IDataErrorInfo
         public string Error
         {
             get { return _error; }
             set { _error = value; }
         }
- 
+        private string _error;
+
         public string this[string columnName] {
             get
             {
                 switch (columnName) {
-                    case "Make":return FiftyNoBlanks(Make);
-                    case "Model":return FiftyNoBlanks(Model);
-                    case "Owner":return FiftyNoBlanks(Owner);
+                    case "Make":return Validation.FiftyNoBlanks(Make);
+                    case "Model":return Validation.FiftyNoBlanks(Model);
+                    case "Owner":return Validation.FiftyNoBlanks(Owner);
                     case "Year":
                         if (Year < 1900 || Year > 2050)
                             return "Year out of range.";
@@ -118,19 +120,8 @@ namespace WpfApp5.Models
                 return null;
             }
         }
-        private string FiftyNoBlanks(string Test)
-        {
-            if (String.IsNullOrWhiteSpace(Test))
-                return "Field must not be blank.";
-            else if (Test.Length > 50)
-                return "Field is too long.";
-            else
-                return null;
-        }
 
-
-        #endregion
-        #region Implements IEditableObject
+        // IEditableObject
         public void BeginEdit()
         {
             //make a copy of the original in case cancels
@@ -147,8 +138,6 @@ namespace WpfApp5.Models
             ObjectCopier.CopyFields(this, _editCopy);
             _editCopy = null;
         }
-
-        #endregion
 
     }
 }

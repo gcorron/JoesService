@@ -17,13 +17,10 @@ namespace WpfApp5.ViewModels
 {
     class CarsViewModel : Screen, ICarsViewModel
     {
-        #region Private Variables, Events, Constructor
         private List<CarModel> _carList;
-        private BindingListCollectionView _sortedCars;
-        private CarModel _fieldedCar;
-        private bool _screenEditingMode;
 
-        private HandleError _handleError;
+        private DataAccess.HandleError _handleError; //delegate to pass DB errors back to main window
+
         public event EventHandler<CarModel> SelectedCarChanged;
         public event EventHandler<bool> ScreenStateChanged;
 
@@ -42,14 +39,14 @@ namespace WpfApp5.ViewModels
             _sortedCars =  new BindingListCollectionView(_cars);
             _sortedCars.CurrentChanged += _sortedCars_CurrentChanged;
         }
-        #endregion
 
-        #region Properties
+        // Properties
 
         public BindingListCollectionView SortedCars
         {
             get { return _sortedCars; }
         }
+        private BindingListCollectionView _sortedCars;
 
         public CarModel FieldedCar
         {
@@ -61,6 +58,7 @@ namespace WpfApp5.ViewModels
                 SelectedCarChanged?.Invoke(this, FieldedCar);
             }
         }
+        private CarModel _fieldedCar;
 
         public bool CanSave(string Fieldedcar_Make, string Fieldedcar_Model, string Fieldedcar_Owner, int Fieldedcar_Year)
         {
@@ -82,14 +80,15 @@ namespace WpfApp5.ViewModels
                 ScreenStateChanged?.Invoke(this, !_screenEditingMode);
             }
         }
+        private bool _screenEditingMode;
+
 
         public bool NotScreenEditingMode
         {
             get { return !_screenEditingMode; }
         }
 
-        #endregion
-        #region Methods
+        // Methods
 
         public void Edit()
         {
@@ -127,8 +126,6 @@ namespace WpfApp5.ViewModels
             return FieldedCar_HasService == false;
         }
 
-
-
         public void Add()
         {
             FieldedCar = _sortedCars.AddNew() as CarModel;
@@ -164,9 +161,6 @@ namespace WpfApp5.ViewModels
             ScreenEditingMode = false;
         }
 
-
-        #endregion
-        #region Event Handlers/Callbacks
         private void _cars_ListChanged(object sender, ListChangedEventArgs e)
         {
             _carList.Sort();
@@ -177,6 +171,5 @@ namespace WpfApp5.ViewModels
             FieldedCar = _sortedCars.CurrentItem as CarModel;
             SelectedCarChanged?.Invoke(this, FieldedCar);
         }
-        #endregion
     }
 }
