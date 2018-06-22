@@ -23,8 +23,6 @@ namespace WpfApp5.Views
         public ShellView()
         {
             InitializeComponent();
-            
-
         }
     }
 }

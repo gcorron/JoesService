@@ -3,10 +3,21 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:WpfApp5.Views"
         mc:Ignorable="d" FontSize="16" SizeToContent="WidthAndHeight"
         Title="Joes Auto Service" WindowStartupLocation="CenterScreen">
+        
         <Grid>
+        <Grid.Resources>
+            <Style TargetType="TextBlock" x:Key="WaitingForCar">
+                <Setter Property="Text" Value="{Binding SelectedCar.ToString}"/>
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding SelectedCar}" Value="{x:Null}">
+                        <Setter Property="FontStyle" Value="Italic"/>
+                        <Setter Property="Text" Value="Select a car."/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Grid.Resources>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="20"/>
                 <ColumnDefinition Width="*"/>
@@ -23,19 +34,19 @@
                     <RadioButton x:Name="CarsScreen" GroupName="Screen" Content="Cars" Margin="5" VerticalAlignment="Center"/>
                     <RadioButton x:Name="ServicesScreen" GroupName="Screen" Content="Services" Margin="5" VerticalAlignment="Center"/>
                     <TextBlock Text="     Car:   " VerticalAlignment="Center"/>
-                    <TextBlock x:Name="SelectedCar_ToString" VerticalAlignment="Center"/>
+                    <TextBlock VerticalAlignment="Center" Style="{StaticResource WaitingForCar}"/>
                 </StackPanel>
             <ContentControl x:Name="ActiveItem" Grid.Row="2" Grid.Column="1"/>
             <Grid Grid.Row="3" Grid.Column="1" Visibility="{Binding ErrorMessageVisible}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <TextBlock Grid.Row="0" Grid.Column="0" x:Name="ErrorMessage" Background="Red" MinWidth="200"
-                        Height="40" TextWrapping="Wrap"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Grid.Column="0" x:Name="ErrorMessage" Background="Red" MinWidth="200"
+                     Height="40" TextWrapping="Wrap"/>
                 <Button Grid.Row="0" Grid.Column="1" x:Name="ClearError" Content="Clear"/>
             </Grid>
         </Grid>

@@ -13,7 +13,6 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-//TODO allow this control to expand to fill window
 namespace WpfApp5.Views
 {
     /// <summary>

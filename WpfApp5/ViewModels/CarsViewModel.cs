@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Caliburn.Micro;
-using WpfApp5.Models;
+using Corron.CarService;
 using System.Windows.Data;
 using System.Collections;
 using System.Globalization;
@@ -12,12 +12,14 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows;
 using static WpfApp5.DataAccess;
+using System.Diagnostics;
 
 namespace WpfApp5.ViewModels
 {
     class CarsViewModel : Screen, ICarsViewModel
     {
         private List<CarModel> _carList;
+        private int _listBookMark;
 
         private DataAccess.HandleError _handleError; //delegate to pass DB errors back to main window
 
@@ -28,16 +30,17 @@ namespace WpfApp5.ViewModels
         {
             _handleError = handleError;
             BindingList<CarModel> _cars;
+
             _carList = DataAccess.GetCars(handleError);
             if (_carList is null)
                 return;
+            Debug.Assert(_carList[0].CarID != 0); //bad data
 
-            _carList.Sort(); 
-            _cars =new BindingList<CarModel>(_carList); // load up cars from DB
+ 
+            _carList.Sort();
+            _cars = new BindingList<CarModel>(_carList); // load up cars from DB
             _cars.RaiseListChangedEvents = true;
-            _cars.ListChanged += _cars_ListChanged;
             _sortedCars =  new BindingListCollectionView(_cars);
-            _sortedCars.CurrentChanged += _sortedCars_CurrentChanged;
         }
 
         // Properties
@@ -129,6 +132,7 @@ namespace WpfApp5.ViewModels
         public void Add()
         {
             FieldedCar = _sortedCars.AddNew() as CarModel;
+            _listBookMark = _sortedCars.CurrentPosition;
             ScreenEditingMode = true;
         }
 
@@ -159,6 +163,13 @@ namespace WpfApp5.ViewModels
             else if (_sortedCars.IsEditingItem)
                 _sortedCars.CancelEdit();
             ScreenEditingMode = false;
+
+            if (_listBookMark >= 0)
+            {
+                if (!_sortedCars.MoveCurrentToPosition(_listBookMark))
+                    return;
+                FieldedCar = _sortedCars.CurrentItem as CarModel;
+            }
         }
 
         private void _cars_ListChanged(object sender, ListChangedEventArgs e)

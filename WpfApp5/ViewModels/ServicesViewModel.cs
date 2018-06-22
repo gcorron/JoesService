@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
-using WpfApp5.Models;
+using Corron.CarService;
 using static WpfApp5.DataAccess;
 
 namespace WpfApp5.ViewModels
@@ -97,6 +97,32 @@ namespace WpfApp5.ViewModels
             }
         }
 
+        //detail lines binding
+
+        private BindingList<ServiceLineModel> _blServiceLines;
+        private BindingListCollectionView _cvServiceLines;
+
+        public BindingListCollectionView ServiceLines
+        {
+            get
+            {
+                if (_cvServiceLines is null)
+                    BindServiceLineList();
+                return _cvServiceLines;
+            }
+        }
+
+        private void BindServiceLineList()
+        {
+            //Binding detail lines
+            _blServiceLines = new BindingList<ServiceLineModel>(FieldedService.ServiceLineList);
+
+            _cvServiceLines = new BindingListCollectionView(_blServiceLines);
+            _cvServiceLines.Refresh();
+
+        }
+
+
         //Misc. State
         public bool ScreenEditingMode
         {
@@ -115,7 +141,7 @@ namespace WpfApp5.ViewModels
             get { return !_screenEditingMode; }
         }
 
-        //Actions
+        //Command Methods
 
         public void Edit()
         {
@@ -157,7 +183,16 @@ namespace WpfApp5.ViewModels
                 }
             }
         }
-        public void Save(bool FieldedService_IsValidState, bool screenEditingMode)
+        public bool CanDelete // keep as property!
+        {
+            get
+            {
+                return _sortedServices.Count > 0;
+            }
+        }
+
+
+        public void Save(bool fieldedService_IsValidState, bool screenEditingMode)
         {
 
             bool isnew = _fieldedService.ServiceID == 0;
@@ -177,13 +212,15 @@ namespace WpfApp5.ViewModels
             }
             _serviceList.Sort();
             _sortedServices.Refresh();
-            //_fieldedService.ServiceLines.Refresh();
+            ServiceLines.Refresh();
             NotifyOfPropertyChange(() => CanDelete);
             ScreenEditingMode = false;
         }
-        public bool CanSave(bool FieldedService_IsValidState, bool screenEditingMode)
+        public bool CanSave(bool fieldedService_IsValidState, bool screenEditingMode)
         {
-            return FieldedService_IsValidState && ScreenEditingMode;
+            if (FieldedService is null)
+                return false;
+            return FieldedService.IsValidState && ScreenEditingMode;
         }
 
         public void Cancel()
@@ -194,6 +231,7 @@ namespace WpfApp5.ViewModels
             else if (_sortedServices.IsEditingItem)
                 _sortedServices.CancelEdit();
 
+            ServiceLines.Refresh();
 
             if (_listBookMark >= 0)
             {
@@ -203,20 +241,5 @@ namespace WpfApp5.ViewModels
             }
         }
 
-        public bool CanDelete // keep as property!
-        {
-            get
-            {
-                return _sortedServices.Count > 0;
-            }
-        }
-    }
-
-    // Tiny helper class
-    public class NameValueByte
-    {
-        public ServiceLineModel.LineTypes Value { get; set; }
-        public string Name { get; set; }
-    }
-
+     }
 }

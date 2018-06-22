@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using WpfApp5.Models;
+using Corron.CarService;
 
 
 namespace WpfApp5.ViewModels
@@ -18,29 +18,38 @@ namespace WpfApp5.ViewModels
         private ServicesViewModel _servicesScreen;
         private char _screentype;
         private bool _canChangeScreen;
+        private bool _waitingForCar;
 
         //Constructor
         public ShellViewModel()
         {
             CarsScreen = true;
-            CanChangeScreen = true;
+            CanChangeScreen = false;
+            _waitingForCar = true;
             NotifyOfPropertyChange(() => ErrorMessageVisible);
         }
 
         //Event Handlers
         private void OnScreenStateChanged(object sender, bool e)
         {
-            CanChangeScreen = e;
+            if (SelectedCar is null)
+                _waitingForCar = true;
+            else
+                CanChangeScreen = e;
         }
 
         private void OnSelectedCarChanged(object sender, CarModel e)
         {
             SelectedCar = e;
+            if (_waitingForCar)
+            {
+                CanChangeScreen = true;
+                _waitingForCar = false;
+
+            }
         }
 
         //Properties
-
-
 
         public bool CarsScreen
         {
@@ -51,8 +60,8 @@ namespace WpfApp5.ViewModels
             set
             {
                 _screentype = 'C';
-                NotifyOfPropertyChange("ServicesScreen");
-                NotifyOfPropertyChange("CarsScreen");
+                NotifyOfPropertyChange(() => ServicesScreen);
+                NotifyOfPropertyChange(); 
 
                 if (_carsScreen == null)
                 {
@@ -82,9 +91,8 @@ namespace WpfApp5.ViewModels
 
                 this.ActivateItem((IScreen)_servicesScreen);
                 _screentype = 'S';
-                NotifyOfPropertyChange("ServicesScreen");
-                NotifyOfPropertyChange("CarsScreen");
-
+                NotifyOfPropertyChange(() => CarsScreen);
+                NotifyOfPropertyChange();
             }
         }
 
@@ -97,7 +105,7 @@ namespace WpfApp5.ViewModels
             set
             {
                 _selectedCar = value;
-                NotifyOfPropertyChange(() => SelectedCar);
+                NotifyOfPropertyChange();
             }
 
         }
@@ -108,7 +116,7 @@ namespace WpfApp5.ViewModels
             set
             {
                 _canChangeScreen = value;
-                NotifyOfPropertyChange(() => CanChangeScreen);
+                NotifyOfPropertyChange();
             }
         }
 
