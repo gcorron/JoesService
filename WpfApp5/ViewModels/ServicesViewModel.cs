@@ -9,7 +9,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using Corron.CarService;
-using static WpfApp5.DataAccess;
+using WpfApp5.Data;
 
 namespace WpfApp5.ViewModels
 {
@@ -25,24 +25,17 @@ namespace WpfApp5.ViewModels
 
         private ServiceModel _fieldedService;
         private bool _screenEditingMode;
-        private HandleError _handleError;
         private CarModel _car;
         private int _listBookMark;
 
         public EventHandler<bool> ScreenStateChanged;
-
-        //Constructor
-        public ServicesViewModel(HandleError handleError)
-        {
-            _handleError = handleError;
-        }
 
         //Load Data, always call on activation!
         public bool LoadServiceData(CarModel car)
         {
             _car = car;
 
-            _serviceList = DataAccess.GetServices(car.CarID, _handleError); // load up Services from DB
+            _serviceList = DataAccess.GetServices(car.CarID); // load up Services from DB
             if (_serviceList is null)
                 return false;
             foreach(ServiceModel SM in _serviceList)
@@ -175,7 +168,7 @@ namespace WpfApp5.ViewModels
                MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
                 _fieldedService.ServiceID = -_fieldedService.ServiceID;
-                if (DataAccess.UpdateService(_fieldedService, _handleError))
+                if (DataAccess.UpdateService(_fieldedService))
                 {
                     _sortedServices.Remove(_fieldedService);
                     _sortedServices.Refresh();
@@ -200,7 +193,7 @@ namespace WpfApp5.ViewModels
             _fieldedService.ServiceLineList.RemoveAll(SL => SL.Delete != 0);
 
 
-            DataAccess.UpdateService(_fieldedService, _handleError);
+            DataAccess.UpdateService(_fieldedService);
             if (isnew)
             {
                 _sortedServices.CommitNew();
@@ -240,6 +233,11 @@ namespace WpfApp5.ViewModels
                 FieldedService = _sortedServices.CurrentItem as ServiceModel;
             }
         }
-
      }
+    // Tiny helper class
+    public class NameValueByte
+    {
+        public ServiceLineModel.LineTypes Value { get; set; }
+        public string Name { get; set; }
+    }
 }

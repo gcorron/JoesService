@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using Corron.CarService;
-
+using WpfApp5.Data;
 
 namespace WpfApp5.ViewModels
 {
@@ -23,6 +23,7 @@ namespace WpfApp5.ViewModels
         //Constructor
         public ShellViewModel()
         {
+            DataAccess.Initialize(ShowErrorMessage);
             CarsScreen = true;
             CanChangeScreen = false;
             _waitingForCar = true;
@@ -65,7 +66,7 @@ namespace WpfApp5.ViewModels
 
                 if (_carsScreen == null)
                 {
-                    _carsScreen = new CarsViewModel(ShowErrorMessage);
+                    _carsScreen = new CarsViewModel();
                     _carsScreen.SelectedCarChanged += OnSelectedCarChanged;
                     _carsScreen.ScreenStateChanged += OnScreenStateChanged;
                 }
@@ -83,7 +84,7 @@ namespace WpfApp5.ViewModels
             {
                 if (_servicesScreen == null)
                 {
-                    _servicesScreen = new ServicesViewModel(ShowErrorMessage);
+                    _servicesScreen = new ServicesViewModel();
                     _servicesScreen.ScreenStateChanged += OnScreenStateChanged;
                 }
                 if (!_servicesScreen.LoadServiceData(_carsScreen.FieldedCar))

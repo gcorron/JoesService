@@ -11,7 +11,7 @@ using System.Globalization;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows;
-using static WpfApp5.DataAccess;
+using WpfApp5.Data;
 using System.Diagnostics;
 
 namespace WpfApp5.ViewModels
@@ -21,17 +21,15 @@ namespace WpfApp5.ViewModels
         private List<CarModel> _carList;
         private int _listBookMark;
 
-        private DataAccess.HandleError _handleError; //delegate to pass DB errors back to main window
 
         public event EventHandler<CarModel> SelectedCarChanged;
         public event EventHandler<bool> ScreenStateChanged;
 
-        public CarsViewModel(HandleError handleError)
+        public CarsViewModel()
         {
-            _handleError = handleError;
             BindingList<CarModel> _cars;
 
-            _carList = DataAccess.GetCars(handleError);
+            _carList = DataAccess.GetCars();
             if (_carList is null)
                 return;
             Debug.Assert(_carList[0].CarID != 0); //bad data
@@ -107,7 +105,7 @@ namespace WpfApp5.ViewModels
                 _fieldedCar.CarID = -_fieldedCar.CarID;
                 try
                 {
-                    DataAccess.UpdateCar(_fieldedCar,_handleError);
+                    DataAccess.UpdateCar(_fieldedCar);
                 }
                 catch (Exception e)
                 {
@@ -141,7 +139,7 @@ namespace WpfApp5.ViewModels
 
             bool isnew = _fieldedCar.CarID == 0;
 
-            DataAccess.UpdateCar(_fieldedCar,_handleError);
+            DataAccess.UpdateCar(_fieldedCar);
             if (isnew)
             { 
                 _sortedCars.CommitNew();
