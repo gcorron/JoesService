@@ -146,14 +146,14 @@
                         <DataGrid.Resources>
                             <Style x:Key="EditCellStyleError" TargetType="{x:Type TextBox}">
                                 <Style.Triggers>
-                                    <Trigger Property="Validation.HasError" Value="true">
+                                    <Trigger Property="Validation.HasError" Value="True">
                                         <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors)[0].ErrorContent}"/>
                                     </Trigger>
                                 </Style.Triggers>
                             </Style>
                             <Style x:Key="CellStyleError" TargetType="{x:Type TextBlock}">
                                 <Style.Triggers>
-                                    <Trigger Property="Validation.HasError" Value="true">
+                                    <Trigger Property="Validation.HasError" Value="True">
                                         <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors)[0].ErrorContent}"/>
                                     </Trigger>
                                 </Style.Triggers>
@@ -173,12 +173,12 @@
                                         FocusManager.FocusedElement="{Binding RelativeSource={RelativeSource Self}}"/>
                             </DataTemplate>
                             <DataTemplate x:Key="ChargeDisplay">
-                                <TextBlock Text="{Binding Path=ChargeString}"
+                                <TextBlock Text="{Binding Path=ChargeString, ValidatesOnDataErrors=True}"
                                  HorizontalAlignment="Right" Style="{StaticResource CellStyleError}"/>
                             </DataTemplate>
                             <DataTemplate x:Key="ChargeEnter">
                                 <TextBox Text="{Binding Path=ChargeString, Mode=TwoWay
-                                        ,UpdateSourceTrigger=LostFocus}"
+                                        ,UpdateSourceTrigger=LostFocus,ValidatesOnDataErrors=True}"
                                          HorizontalAlignment="Right"
                                          Style="{StaticResource EditCellStyleError}" 
                                          FocusManager.FocusedElement="{Binding RelativeSource={RelativeSource Self}}"/>
@@ -190,7 +190,7 @@
                                  CellTemplate="{StaticResource LineTypeDisplay}" CellEditingTemplate="{StaticResource LineTypeSelect}"/>
                             <!-- Column: ServiceLineDesc -->
                             <DataGridTextColumn Header="Description" Width="5*" Binding="{Binding Path=ServiceLineDesc, 
-                                Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnDataErrors=True}"
                                 EditingElementStyle="{StaticResource EditCellStyleError}" ElementStyle="{StaticResource CellStyleError}"/>
                             <!-- Column: ServiceLineCharge -->
                             <DataGridTemplateColumn Header="Charge" Width="3*"
@@ -208,7 +208,7 @@
                     <Button x:Name="Cancel" Content="Cancel" Margin="5"/>
                     <CheckBox x:Name="ScreenEditingMode" Visibility="Hidden"/>
                     <CheckBox x:Name="FieldedService_IsValidState" Visibility="Hidden"/>
-
+                    <CheckBox x:Name="CurrentServiceLine_IsValidState" Visibility="Visible"/>
                 </StackPanel>
             </Grid>
         </Border>

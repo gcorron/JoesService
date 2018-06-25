@@ -7,7 +7,6 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Formatting;
 using Corron.CarService;
-using static WpfApp5.Data.DataAccess;
 
 namespace WpfApp5.Data
 {
@@ -15,16 +14,16 @@ namespace WpfApp5.Data
     {
 
         private static HttpClient _client;
-        private static HandleError _handleError;
+        private static SQLData.HandleError _handleError;
 
-        public static void Initialize(HandleError handleError)
+        public static void Initialize(SQLData.HandleError handleError,string WebAddress)
         {
             _handleError = handleError;               
 
             if (_client is null)
             {
-                _client = new HttpClient(); // for Web API
-                _client.BaseAddress = new Uri("http://localhost:55679/"); //TODO put in config file
+                _client = new HttpClient();
+                _client.BaseAddress = new Uri(WebAddress);
                 _client.DefaultRequestHeaders.Accept.Clear();
                 _client.DefaultRequestHeaders.Accept.Add(
                     new MediaTypeWithQualityHeaderValue("application/json"));
@@ -57,5 +56,148 @@ namespace WpfApp5.Data
                 return reader.ToList<CarModel>();
             }
         }
+
+        public static List<ServiceModel> GetServices(int CarID)
+        {
+            try
+            {
+                return GetServicesTask(CarID).GetAwaiter().GetResult();
+            }
+            catch (Exception e)
+            {
+                if (e.InnerException is null)
+                    _handleError(e.Message);
+                else
+                    _handleError(e.InnerException.Message);
+                return null;
+            }
+        }
+
+        public static async Task<List<ServiceModel>> GetServicesTask(int CarID)
+        {
+            using (var response = await _client.GetAsync($"api/Services?id={CarID}", HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false))
+            {
+                response.EnsureSuccessStatusCode();
+                var reader = await response.Content.ReadAsAsync<List<ServiceModel>>().ConfigureAwait(false);
+                return reader.ToList<ServiceModel>();
+            }
+        }
+        public static bool UpdateCar(CarModel car)
+        {
+            try
+            {
+                switch(car.CarID.CompareTo(0))
+                {
+                    case -1:
+                        car.CarID = DeleteCarTask(car.CarID).GetAwaiter().GetResult();
+                        break;
+                    case 0:
+                        car.CarID = PostCarTask(car).GetAwaiter().GetResult();
+                        break;
+                    case 1:
+                        car.CarID = PutCarTask(car).GetAwaiter().GetResult();
+                        break;
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.InnerException is null)
+                    _handleError(e.Message);
+                else
+                    _handleError(e.InnerException.Message);
+                return false;
+            }
+            return true;
+        }
+        public static async Task<int> PutCarTask(CarModel car)
+        {
+            using (var response = await _client.PutAsJsonAsync<CarModel>($"api/Cars?id={car.CarID}",car).ConfigureAwait(false))
+            {
+                response.EnsureSuccessStatusCode();
+              int id = await response.Content.ReadAsAsync<int>().ConfigureAwait(false);
+              return id;
+            }
+        }
+
+        public static async Task<int> PostCarTask(CarModel car)
+        {
+            using (var response = await _client.PostAsJsonAsync<CarModel>($"api/Cars?id={car.CarID}", car).ConfigureAwait(false))
+            {
+                response.EnsureSuccessStatusCode();
+                int id = await response.Content.ReadAsAsync<int>().ConfigureAwait(false);
+                return id;
+            }
+        }
+
+        public static async Task<int> DeleteCarTask(int id)
+        {
+            using (var response = await _client.DeleteAsync($"api/Cars?id={id}").ConfigureAwait(false))
+            {
+                response.EnsureSuccessStatusCode();
+                id = await response.Content.ReadAsAsync<int>().ConfigureAwait(false);
+                return id;
+            }
+        }
+
+
+
+        public static bool UpdateService(ServiceModel service)
+        {
+            try
+            {
+                switch (service.ServiceID.CompareTo(0))
+                {
+                    case -1:
+                        service.ServiceID = DeleteServiceTask(service.ServiceID).GetAwaiter().GetResult();
+                        break;
+                    case 0:
+                        service.ServiceID = PostServiceTask(service).GetAwaiter().GetResult();
+                        break;
+                    case 1:
+                        service.ServiceID = PutServiceTask(service).GetAwaiter().GetResult();
+                        break;
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.InnerException is null)
+                    _handleError(e.Message);
+                else
+                    _handleError(e.InnerException.Message);
+                return false;
+            }
+            return true;
+        }
+        public static async Task<int> PutServiceTask(ServiceModel service)
+        {
+            using (var response = await _client.PutAsJsonAsync<ServiceModel>($"api/Services?id={service.ServiceID}", service).ConfigureAwait(false))
+            {
+                response.EnsureSuccessStatusCode();
+                int id = await response.Content.ReadAsAsync<int>().ConfigureAwait(false);
+                return id;
+            }
+        }
+
+        public static async Task<int> PostServiceTask(ServiceModel service)
+        {
+            using (var response = await _client.PostAsJsonAsync<ServiceModel>($"api/Services?id={service.CarID}", service).ConfigureAwait(false))
+            {
+                response.EnsureSuccessStatusCode();
+                int id = await response.Content.ReadAsAsync<int>().ConfigureAwait(false);
+                return id;
+            }
+        }
+
+        public static async Task<int> DeleteServiceTask(int id)
+        {
+            using (var response = await _client.DeleteAsync($"api/Services?id={id}").ConfigureAwait(false))
+            {
+                response.EnsureSuccessStatusCode();
+                id = await response.Content.ReadAsAsync<int>().ConfigureAwait(false);
+                return id;
+            }
+        }
+
+
     }
 }

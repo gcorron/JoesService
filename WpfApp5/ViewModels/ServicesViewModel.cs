@@ -53,6 +53,7 @@ namespace WpfApp5.ViewModels
             _sortedServices.MoveCurrentToFirst();
             _fieldedService = _sortedServices.CurrentItem as ServiceModel;
 
+
             NotifyOfPropertyChange(() => SortedServices);
             NotifyOfPropertyChange(() => CanDelete);
             return true;
@@ -75,7 +76,10 @@ namespace WpfApp5.ViewModels
             set
             {
                 _fieldedService = value;
+                _cvServiceLines = null; //force refresh of bindings for detail lines
                 NotifyOfPropertyChange();
+                if (!(ServiceLines is null))
+                    NotifyOfPropertyChange(() => ServiceLines); 
             }
         }
 
@@ -99,6 +103,8 @@ namespace WpfApp5.ViewModels
         {
             get
             {
+                if (FieldedService is null)
+                    return null;
                 if (_cvServiceLines is null)
                     BindServiceLineList();
                 return _cvServiceLines;
@@ -109,10 +115,8 @@ namespace WpfApp5.ViewModels
         {
             //Binding detail lines
             _blServiceLines = new BindingList<ServiceLineModel>(FieldedService.ServiceLineList);
-
+//            _blServiceLines.RaiseListChangedEvents = true;
             _cvServiceLines = new BindingListCollectionView(_blServiceLines);
-            _cvServiceLines.Refresh();
-
         }
 
 
@@ -211,21 +215,23 @@ namespace WpfApp5.ViewModels
         }
         public bool CanSave(bool fieldedService_IsValidState, bool screenEditingMode)
         {
-            if (FieldedService is null)
+            if (ScreenEditingMode == false)
                 return false;
-            return FieldedService.IsValidState && ScreenEditingMode;
+
+            return FieldedService.IsValidState;
         }
 
         public void Cancel()
         {
-            ScreenEditingMode = false;
+
             if (_sortedServices.IsAddingNew)
                 _sortedServices.CancelNew();
             else if (_sortedServices.IsEditingItem)
                 _sortedServices.CancelEdit();
 
-            ServiceLines.Refresh();
-
+            ScreenEditingMode = false;
+            NotifyOfPropertyChange(() => ServiceLines);
+ 
             if (_listBookMark >= 0)
             {
                 if (!_sortedServices.MoveCurrentToPosition(_listBookMark))

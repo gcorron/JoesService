@@ -4,26 +4,31 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Corron.CarService;
+using System.Data;
+using System.Configuration;
 
 namespace WpfApp5.Data
 {
-
-
     public static class DataAccess
     {
-
-        public delegate void HandleError(string Message);
+       // public delegate void HandleError(string Message);
 
         private static bool _useSQL;
- 
 
-        public static void Initialize(HandleError handleError)
+        public static string Initialize(SQLData.HandleError handleError)
         {
-            _useSQL = true; //TODO get from config 
+            string webAddress = Corron.CarService.SQLData.WebConnection();
+            _useSQL = String.IsNullOrEmpty(webAddress);
             if (_useSQL)
+            {
                 SQLData.Initialize(handleError);
+                return "Connected via SQL";
+                }
             else
-                WebClient.Initialize(handleError);
+        	{
+                WebClient.Initialize(handleError, webAddress);
+                return "Connected via Web";
+            }
         }
 
         public static List<CarModel> GetCars()
@@ -36,17 +41,28 @@ namespace WpfApp5.Data
 
         public static List<ServiceModel> GetServices(int CarID)
         {
-            return SQLData.GetServices(CarID);
+            if (_useSQL)
+                return SQLData.GetServices(CarID);
+            else
+                return WebClient.GetServices(CarID);
         }
 
-        public static void UpdateCar(CarModel car)
+        public static bool UpdateCar(CarModel car)
         {
-            SQLData.UpdateCar(car);
+            if (_useSQL)
+                return SQLData.UpdateCar(car);
+            else
+            {
+                return WebClient.UpdateCar(car);
+            }
         }
 
         public static bool UpdateService(ServiceModel service)
         {
-            return SQLData.UpdateService(service);
+            if (_useSQL)
+                return SQLData.UpdateService(service);
+            else
+                return WebClient.UpdateService(service);
         }
 
      }

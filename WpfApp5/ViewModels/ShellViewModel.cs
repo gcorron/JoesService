@@ -23,7 +23,7 @@ namespace WpfApp5.ViewModels
         //Constructor
         public ShellViewModel()
         {
-            DataAccess.Initialize(ShowErrorMessage);
+            ConnectMethod=DataAccess.Initialize(ShowErrorMessage);
             CarsScreen = true;
             CanChangeScreen = false;
             _waitingForCar = true;
@@ -51,6 +51,8 @@ namespace WpfApp5.ViewModels
         }
 
         //Properties
+
+        public string ConnectMethod { get; set; }
 
         public bool CarsScreen
         {
@@ -122,6 +124,7 @@ namespace WpfApp5.ViewModels
         }
 
         public string ErrorMessage { get; set; }
+
         public Visibility ErrorMessageVisible
         {
             get {
