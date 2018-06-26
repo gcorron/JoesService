@@ -197,7 +197,9 @@ namespace WpfApp5.ViewModels
             _fieldedService.ServiceLineList.RemoveAll(SL => SL.Delete != 0);
 
 
-            DataAccess.UpdateService(_fieldedService);
+            if (!DataAccess.UpdateService(_fieldedService))
+                return;
+
             if (isnew)
             {
                 _sortedServices.CommitNew();
@@ -211,6 +213,7 @@ namespace WpfApp5.ViewModels
             _sortedServices.Refresh();
             ServiceLines.Refresh();
             NotifyOfPropertyChange(() => CanDelete);
+            NotifyOfPropertyChange(() => CanEdit);
             ScreenEditingMode = false;
         }
         public bool CanSave(bool fieldedService_IsValidState, bool screenEditingMode)
@@ -228,16 +231,17 @@ namespace WpfApp5.ViewModels
                 _sortedServices.CancelNew();
             else if (_sortedServices.IsEditingItem)
                 _sortedServices.CancelEdit();
+            _sortedServices.Refresh(); //prevent exceptions downstream
 
             ScreenEditingMode = false;
             NotifyOfPropertyChange(() => ServiceLines);
  
-            if (_listBookMark >= 0)
-            {
-                if (!_sortedServices.MoveCurrentToPosition(_listBookMark))
-                    return;
-                FieldedService = _sortedServices.CurrentItem as ServiceModel;
-            }
+            //if (_listBookMark >= 0)
+            //{
+            //    if (!_sortedServices.MoveCurrentToPosition(_listBookMark))
+            //        return;
+            //    FieldedService = _sortedServices.CurrentItem as ServiceModel;
+            //}
         }
      }
     // Tiny helper class
