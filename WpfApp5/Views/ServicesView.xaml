@@ -91,7 +91,7 @@
         <Border x:Name="BorderE" Grid.Row="1" Grid.Column="3" BorderBrush="Black" BorderThickness="2">
             <Grid Grid.Row="0" Grid.Column="2" IsEnabled="{Binding ScreenEditingMode}"
                   Margin="5,0,0,0" MaxWidth="500">
-                    <Grid.Resources>
+                <Grid.Resources>
                         <Style TargetType="{x:Type TextBlock}">
                             <Setter Property="VerticalAlignment" Value="Center"/>
                             <Setter Property="HorizontalAlignment" Value="Right"/>
@@ -131,11 +131,11 @@
                 <TextBlock Text="Labor:" Grid.Column="0" Grid.Row="3"/>
 
                 <StackPanel Orientation="Horizontal" Grid.Column="1" Grid.Row="3" Grid.ColumnSpan="3">
-                    <TextBox x:Name="FieldedService_LaborCostString" 
+                    <TextBox Text="{Binding Path=FieldedService.LaborCost, StringFormat='0.00'}"
                              Style="{StaticResource NumericTextDisplay}"
                              MinWidth="100"/>
                     <TextBlock Text="   Parts:"/>
-                    <TextBox x:Name="FieldedService_PartsCostString"
+                    <TextBox Text="{Binding Path=FieldedService.PartsCost, StringFormat='0.00'}"
                              Style="{StaticResource NumericTextDisplay}"
                              MinWidth="100"/>
                 </StackPanel>
@@ -191,17 +191,6 @@
                                         IsTextSearchEnabled="True" TextSearch.TextPath="Name"
                                         FocusManager.FocusedElement="{Binding RelativeSource={RelativeSource Self}}"/>
                             </DataTemplate>
-                            <DataTemplate x:Key="ChargeDisplay">
-                                <TextBlock Text="{Binding Path=ChargeString, ValidatesOnDataErrors=True}"
-                                 HorizontalAlignment="Right" Style="{StaticResource CellStyleError}"/>
-                            </DataTemplate>
-                            <DataTemplate x:Key="ChargeEnter">
-                                <TextBox Text="{Binding Path=ChargeString, Mode=TwoWay
-                                        ,UpdateSourceTrigger=LostFocus,ValidatesOnDataErrors=True}"
-                                         HorizontalAlignment="Right"
-                                         Style="{StaticResource EditCellStyleError}" 
-                                         FocusManager.FocusedElement="{Binding RelativeSource={RelativeSource Self}}"/>
-                            </DataTemplate>
                         </DataGrid.Resources>
                         <DataGrid.Columns>
                             <!-- Column: ServiceLineType -->
@@ -215,7 +204,7 @@
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource CellStyleError}">
                                         <Setter Property="Text" Value="{Binding Path=ServiceLineDesc, 
-                                Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
+                                            Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
                                     </Style>
                                 </DataGridTextColumn.ElementStyle>
                                 <DataGridTextColumn.EditingElementStyle>
@@ -234,14 +223,14 @@
                                 <DataGridTextColumn.ElementStyle>
                                     <Style  TargetType="{x:Type TextBlock}"  BasedOn="{StaticResource CellStyleError}">
                                         <Setter Property="HorizontalAlignment" Value="Right" />
-                                        <Setter Property="Text" Value="{Binding Path=ChargeString, 
+                                        <Setter Property="Text" Value="{Binding Path=ServiceLineCharge, StringFormat='0.00', 
                                 Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
                                     </Style>
                                 </DataGridTextColumn.ElementStyle>
                                 <DataGridTextColumn.EditingElementStyle>
                                     <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource EditCellStyleError}">
                                         <Setter Property="HorizontalAlignment" Value="Right"/>
-                                        <Setter Property="Text" Value="{Binding Path=ChargeString, 
+                                        <Setter Property="Text" Value="{Binding Path=ServiceLineCharge, StringFormat='0.00',
                                 Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
                                     </Style>
                                 </DataGridTextColumn.EditingElementStyle>
