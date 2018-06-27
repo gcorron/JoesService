@@ -143,8 +143,8 @@ namespace WpfApp5.ViewModels
         public void Edit()
         {
             _sortedServices.EditItem(_sortedServices.CurrentItem);
-
             ScreenEditingMode = true;
+            ServiceModel.RollBackNotifyAction = ChangesRolledBack;
         }
         public bool CanEdit // keep as property!
         {
@@ -231,19 +231,14 @@ namespace WpfApp5.ViewModels
                 _sortedServices.CancelNew();
             else if (_sortedServices.IsEditingItem)
                 _sortedServices.CancelEdit();
-            _sortedServices.Refresh(); //prevent exceptions downstream
-
-            ScreenEditingMode = false;
-            NotifyOfPropertyChange(() => ServiceLines);
- 
-            //if (_listBookMark >= 0)
-            //{
-            //    if (!_sortedServices.MoveCurrentToPosition(_listBookMark))
-            //        return;
-            //    FieldedService = _sortedServices.CurrentItem as ServiceModel;
-            //}
         }
-     }
+        private void ChangesRolledBack()
+        {
+            _cvServiceLines.Refresh();
+            _sortedServices.Refresh();
+            ScreenEditingMode = false;
+        }
+    }
     // Tiny helper class
     public class NameValueByte
     {
