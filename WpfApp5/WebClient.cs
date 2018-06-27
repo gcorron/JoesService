@@ -82,7 +82,7 @@ namespace WpfApp5.Data
                 return reader.ToList<ServiceModel>();
             }
         }
-        public static bool UpdateCar(CarModel car)
+        public static bool UpdateCar(ICarModel car)
         {
             try
             {
@@ -109,9 +109,9 @@ namespace WpfApp5.Data
             }
             return true;
         }
-        public static async Task<int> PutCarTask(CarModel car)
+        public static async Task<int> PutCarTask(ICarModel car)
         {
-            using (var response = await _client.PutAsJsonAsync<CarModel>($"api/Cars?id={car.CarID}",car).ConfigureAwait(false))
+            using (var response = await _client.PutAsJsonAsync<ICarModel>($"api/Cars?id={car.CarID}",car).ConfigureAwait(false))
             {
                 response.EnsureSuccessStatusCode();
               int id = await response.Content.ReadAsAsync<int>().ConfigureAwait(false);
@@ -119,9 +119,9 @@ namespace WpfApp5.Data
             }
         }
 
-        public static async Task<int> PostCarTask(CarModel car)
+        public static async Task<int> PostCarTask(ICarModel car)
         {
-            using (var response = await _client.PostAsJsonAsync<CarModel>($"api/Cars?id={car.CarID}", car).ConfigureAwait(false))
+            using (var response = await _client.PostAsJsonAsync<ICarModel>($"api/Cars?id={car.CarID}", car).ConfigureAwait(false))
             {
                 response.EnsureSuccessStatusCode();
                 int id = await response.Content.ReadAsAsync<int>().ConfigureAwait(false);

@@ -14,7 +14,7 @@ namespace WpfApp5.ViewModels
     class ShellViewModel : Conductor<IScreen>.Collection.OneActive
     {
         private ICarModel _selectedCar;
-        private ICarsViewModel _carsScreen;
+        private CarsViewModel _carsScreen;
         private ServicesViewModel _servicesScreen;
         private char _screentype;
         private bool _canChangeScreen;
@@ -39,7 +39,7 @@ namespace WpfApp5.ViewModels
                 CanChangeScreen = e;
         }
 
-        private void OnSelectedCarChanged(object sender, CarModel e)
+        private void OnSelectedCarChanged(object sender, ICarModel e)
         {
             SelectedCar = e;
             if (_waitingForCar)

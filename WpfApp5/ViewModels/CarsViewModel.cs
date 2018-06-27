@@ -16,13 +16,13 @@ using System.Diagnostics;
 
 namespace WpfApp5.ViewModels
 {
-    class CarsViewModel : Screen, ICarsViewModel
+    class CarsViewModel : Screen
     {
         private List<CarModel> _carList;
         private int _listBookMark;
 
 
-        public event EventHandler<CarModel> SelectedCarChanged;
+        public event EventHandler<ICarModel> SelectedCarChanged;
         public event EventHandler<bool> ScreenStateChanged;
 
         public CarsViewModel()
@@ -34,7 +34,6 @@ namespace WpfApp5.ViewModels
                 return;
             Debug.Assert(_carList[0].CarID != 0); //bad data
 
- 
             _carList.Sort();
             _cars = new BindingList<CarModel>(_carList); // load up cars from DB
             _cars.RaiseListChangedEvents = true;
@@ -49,7 +48,7 @@ namespace WpfApp5.ViewModels
         }
         private BindingListCollectionView _sortedCars;
 
-        public CarModel FieldedCar
+        public ICarModel FieldedCar
         {
             get { return _fieldedCar; }
             set
@@ -59,7 +58,7 @@ namespace WpfApp5.ViewModels
                 SelectedCarChanged?.Invoke(this, FieldedCar);
             }
         }
-        private CarModel _fieldedCar;
+        private ICarModel _fieldedCar;
 
         public bool CanSave(string Fieldedcar_Make, string Fieldedcar_Model, string Fieldedcar_Owner, int Fieldedcar_Year)
         {
@@ -129,7 +128,7 @@ namespace WpfApp5.ViewModels
 
         public void Add()
         {
-            FieldedCar = _sortedCars.AddNew() as CarModel;
+            FieldedCar = _sortedCars.AddNew() as ICarModel;
             _listBookMark = _sortedCars.CurrentPosition;
             ScreenEditingMode = true;
         }
@@ -149,6 +148,7 @@ namespace WpfApp5.ViewModels
             {
                 _sortedCars.CommitEdit();
             }
+            SelectedCarChanged.Invoke(this, _fieldedCar);
             _carList.Sort();
             _sortedCars.Refresh();
             ScreenEditingMode = false;
@@ -166,7 +166,7 @@ namespace WpfApp5.ViewModels
             {
                 if (!_sortedCars.MoveCurrentToPosition(_listBookMark))
                     return;
-                FieldedCar = _sortedCars.CurrentItem as CarModel;
+                FieldedCar = _sortedCars.CurrentItem as ICarModel;
             }
         }
 
@@ -177,7 +177,7 @@ namespace WpfApp5.ViewModels
         }
         private void _sortedCars_CurrentChanged(object sender, EventArgs e)
         {
-            FieldedCar = _sortedCars.CurrentItem as CarModel;
+            FieldedCar = _sortedCars.CurrentItem as ICarModel;
             SelectedCarChanged?.Invoke(this, FieldedCar);
         }
     }

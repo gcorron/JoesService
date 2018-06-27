@@ -81,7 +81,6 @@
     </ApplicationDefinition>
     <Compile Include="DataAccess.cs" />
     <Compile Include="ViewModels\CarsViewModel.cs" />
-    <Compile Include="ViewModels\ICarsViewModel.cs" />
     <Compile Include="ViewModels\ServicesViewModel.cs" />
     <Compile Include="ViewModels\ShellViewModel.cs" />
     <Compile Include="App.xaml.cs">

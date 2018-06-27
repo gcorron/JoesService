@@ -25,13 +25,13 @@ namespace WpfApp5.ViewModels
 
         private ServiceModel _fieldedService;
         private bool _screenEditingMode;
-        private CarModel _car;
+        private ICarModel _car;
         private int _listBookMark;
 
         public EventHandler<bool> ScreenStateChanged;
 
         //Load Data, always call on activation!
-        public bool LoadServiceData(CarModel car)
+        public bool LoadServiceData(ICarModel car)
         {
             _car = car;
 
@@ -96,7 +96,7 @@ namespace WpfApp5.ViewModels
 
         //detail lines binding
 
-        private BindingList<ServiceLineModel> _blServiceLines;
+        private BindingList<IServiceLineModel> _blServiceLines;
         private BindingListCollectionView _cvServiceLines;
 
         public BindingListCollectionView ServiceLines
@@ -114,7 +114,7 @@ namespace WpfApp5.ViewModels
         private void BindServiceLineList()
         {
             //Binding detail lines
-            _blServiceLines = new BindingList<ServiceLineModel>(FieldedService.ServiceLineList);
+            _blServiceLines = new BindingList<IServiceLineModel>(FieldedService.ServiceLineList);
 //            _blServiceLines.RaiseListChangedEvents = true;
             _cvServiceLines = new BindingListCollectionView(_blServiceLines);
         }
@@ -194,7 +194,7 @@ namespace WpfApp5.ViewModels
 
             bool isnew = _fieldedService.ServiceID == 0;
 
-            _fieldedService.ServiceLineList.RemoveAll(SL => SL.Delete != 0);
+            _fieldedService.ServiceLineList.RemoveAll(SL => SL.Delete);
 
 
             if (!DataAccess.UpdateService(_fieldedService))

@@ -47,7 +47,7 @@ namespace WpfApp5.Data
                 return WebClient.GetServices(CarID);
         }
 
-        public static bool UpdateCar(CarModel car)
+        public static bool UpdateCar(ICarModel car)
         {
             if (_useSQL)
                 return SQLData.UpdateCar(car);
